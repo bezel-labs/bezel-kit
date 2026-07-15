@@ -1,6 +1,6 @@
 {
   "name": "@bezel-labs/bezel-kit",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "Convert a W3C Design Tokens (DTCG) file into a scoped variables.css, with one CSS scope per context.",
   "keywords": [

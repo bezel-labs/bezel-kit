@@ -13,6 +13,11 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      # semantic-release writes its own `chore(release): x.y.z` commit, whose generated
+      # changelog body exceeds commitlint's body-max-line-length. Skip installing husky's
+      # commit-msg hook here — human commits are still linted locally and on PRs.
+      HUSKY: 0
     steps:
       - uses: actions/checkout@v4
         with:

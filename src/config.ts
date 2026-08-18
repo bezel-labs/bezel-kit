@@ -2,7 +2,15 @@ import { isAbsolute, resolve } from "node:path"
 import { DEFAULT_INPUT, DEFAULT_VARIABLES_OUTPUT } from "./defaults"
 import { resolveCssOptions, type CssOptions } from "./options"
 
-export { DEFAULT_CONTEXTS, DEFAULT_INPUT, DEFAULT_VARIABLES_OUTPUT, DEFAULT_NAME_EXTENSION } from "./defaults"
+export {
+  DEFAULT_CONFIG_FILE,
+  DEFAULT_CONTEXTS,
+  DEFAULT_INPUT,
+  DEFAULT_OUTPUT_DIR,
+  DEFAULT_VARIABLES_OUTPUT,
+  DEFAULT_NAME_EXTENSION,
+  FALLBACK_OUTPUT_DIR,
+} from "./defaults"
 
 /**
  * Options for {@link generateVariablesCss} — the Node, file-oriented surface.
@@ -10,7 +18,7 @@ export { DEFAULT_CONTEXTS, DEFAULT_INPUT, DEFAULT_VARIABLES_OUTPUT, DEFAULT_NAME
  * defaults make the zero-config case work.
  */
 export interface BezelOptions extends CssOptions {
-  /** Path to write the generated CSS. Default: `"variables.css"` (resolved from `cwd`). */
+  /** Path to write the generated CSS. Default: `"src/bezel/variables.css"` (resolved from `cwd`). */
   variablesOutput?: string
   /** Base directory paths are resolved against. Default: `process.cwd()`. */
   cwd?: string

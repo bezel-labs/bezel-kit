@@ -18,6 +18,9 @@ import type { DtcgNode } from "./types"
 export * from "./index"
 export { resolveOptions } from "./config"
 export type { BezelOptions, ResolvedOptions } from "./config"
+export { initConfig, readPackageScripts } from "./init"
+export type { InitOptions, InitResult } from "./init"
+export { DEFAULT_CONFIG_FILE, DEFAULT_OUTPUT_DIR, FALLBACK_OUTPUT_DIR } from "./defaults"
 
 /**
  * Generate a scoped `variables.css` from a W3C DTCG tokens file.
@@ -30,12 +33,12 @@ export type { BezelOptions, ResolvedOptions } from "./config"
  * (resolved against `cwd`); the name and location are fixed and not configurable.
  *
  * @example
- * // zero-config: ./design-tokens.json → ./variables.css
+ * // zero-config: ./design-tokens.json → ./src/bezel/variables.css
  * await generateVariablesCss()
  *
  * @example
  * await generateVariablesCss({
- *   variablesOutput: "packages/ui/src/styles/variables.css",
+ *   variablesOutput: "packages/ui/src/bezel/variables.css",
  * })
  */
 export async function generateVariablesCss(options: BezelOptions = {}): Promise<string> {

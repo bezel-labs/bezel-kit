@@ -33,25 +33,38 @@ location are fixed and not configurable.
 ```ts
 import { generateVariablesCss } from "@bezel-labs/bezel-kit/node"
 
-// reads ./design-tokens.json, writes ./variables.css
+// reads ./design-tokens.json, writes ./src/bezel/variables.css
 await generateVariablesCss()
 ```
 
 ### CLI
 
 ```sh
-bezel build [options]
+bezel init [options]    # create a bezel.json for this project
+bezel build [options]   # generate the outputs (default command)
 ```
 
-Auto-loads a `bezel.json` config from the working directory when present. Run
+`init` writes the config so you don't have to author it by hand, picking defaults from
+the project: outputs go to `src/bezel/` (or `bezel/` with no `src/`), and the generated
+`contexts.ts`/`fonts.ts` modules are only scaffolded for a TypeScript project. Override
+any of it with `--dir`, `--variables-output`, `--contexts-output`, `--fonts-output`,
+`--no-contexts`, `--no-fonts`, `--color`, `--unit`. An existing `bezel.json` is never
+overwritten without `--force`.
+
+`build` auto-loads `bezel.json` from the working directory when present. Run
 `bezel --help` for all options.
+
+Generated outputs live in their own directory because `build` overwrites them without
+asking and adds them to `.gitignore` — keeping them out of a hand-written `src/styles`
+means a generic name like `variables.css` can never clobber a file you wrote.
 
 ## API
 
 - **Core (`.`):** `tokensToCss`, `emitCss`, `resolveCssOptions`, `getContexts`,
   `formatContextsModule`, `getFonts`, `formatFontsModule`, the `DEFAULT_CONTEXTS` /
   `DEFAULT_NAME_EXTENSION` defaults, plus the related types.
-- **Node (`./node`):** everything above, plus `generateVariablesCss` and `resolveOptions`.
+- **Node (`./node`):** everything above, plus `generateVariablesCss`, `resolveOptions`,
+  `initConfig`, and the `DEFAULT_OUTPUT_DIR` / `DEFAULT_CONFIG_FILE` defaults.
 
 ## Development
 

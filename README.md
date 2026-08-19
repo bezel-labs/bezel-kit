@@ -58,6 +58,19 @@ Generated outputs live in their own directory because `build` overwrites them wi
 asking and adds them to `.gitignore` — keeping them out of a hand-written `src/styles`
 means a generic name like `variables.css` can never clobber a file you wrote.
 
+## Upgrading to 0.3.0
+
+The default `$extensions` namespace changed from `com.tokendesigner.app` to
+`com.bezel.app`. Tokens still carrying the old key no longer match the default, so
+`bezel build` falls back to path-derived names (`--color-primary-default` instead of
+the authored `--primary`).
+
+Either re-export `design-tokens.json` from Bezel, or pin the old key in `bezel.json`:
+
+```json
+{ "nameExtension": "com.tokendesigner.app" }
+```
+
 ## API
 
 - **Core (`.`):** `tokensToCss`, `emitCss`, `resolveCssOptions`, `getContexts`,

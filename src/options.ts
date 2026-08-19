@@ -16,7 +16,7 @@ export interface CssOptions {
   colorFormat?: "oklch" | "hex"
   /** Dimension handling: keep the authored unit, or convert `px` → `rem`. Default: `"preserve"`. */
   dimensionUnit?: "preserve" | "rem"
-  /** `$extensions` key holding the `exportName` array. Default: `"com.tokendesigner.app"`. */
+  /** `$extensions` key holding the `exportName` array. Default: `"com.bezel.app"`. */
   nameExtension?: string
 }
 

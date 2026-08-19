@@ -2,6 +2,7 @@ import { flattenForContext } from "./collapse"
 import { aliasTarget, resolveReferences } from "./resolve"
 import { serializeValue } from "./serialize"
 import { cssNames, nameFromPath, usesExportNames } from "./name"
+import { DEFAULT_NAME_EXTENSION } from "./defaults"
 import type { ResolvedCssOptions } from "./options"
 import type { DtcgNode, FlatToken } from "./types"
 
@@ -9,7 +10,7 @@ const OPTS: ResolvedCssOptions = {
   contexts: { $root: ":root", dark: ".dark", light: ".light" },
   colorFormat: "oklch",
   dimensionUnit: "preserve",
-  nameExtension: "com.tokendesigner.app",
+  nameExtension: DEFAULT_NAME_EXTENSION,
 }
 
 describe("flattenForContext", () => {
@@ -117,15 +118,15 @@ describe("naming", () => {
   const exported: FlatToken = {
     path: "base.color.neutral.foreground",
     value: "x",
-    extensions: { "com.tokendesigner.app": { exportName: ["foreground", "card-foreground", ""] } },
+    extensions: { [DEFAULT_NAME_EXTENSION]: { exportName: ["foreground", "card-foreground", ""] } },
   }
 
   it("fans out multiple export names and drops empties", () => {
-    expect(cssNames(exported, "com.tokendesigner.app", true)).toEqual(["foreground", "card-foreground"])
+    expect(cssNames(exported, DEFAULT_NAME_EXTENSION, true)).toEqual(["foreground", "card-foreground"])
   })
 
   it("emits nothing for a token without export names in exportName mode", () => {
-    expect(cssNames({ path: "base.color.green.500", value: "x" }, "com.tokendesigner.app", true)).toEqual([])
+    expect(cssNames({ path: "base.color.green.500", value: "x" }, DEFAULT_NAME_EXTENSION, true)).toEqual([])
   })
 
   it("derives from path in fallback mode", () => {
@@ -134,7 +135,7 @@ describe("naming", () => {
   })
 
   it("detects exportName usage", () => {
-    expect(usesExportNames([exported], "com.tokendesigner.app")).toBe(true)
-    expect(usesExportNames([{ path: "a", value: "x" }], "com.tokendesigner.app")).toBe(false)
+    expect(usesExportNames([exported], DEFAULT_NAME_EXTENSION)).toBe(true)
+    expect(usesExportNames([{ path: "a", value: "x" }], DEFAULT_NAME_EXTENSION)).toBe(false)
   })
 })

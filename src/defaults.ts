@@ -37,7 +37,7 @@ export const CONTEXTS_FILE = "contexts.ts";
 export const FONTS_FILE = "fonts.ts";
 
 export const DEFAULT_VARIABLES_OUTPUT = `${DEFAULT_OUTPUT_DIR}/${VARIABLES_FILE}`;
-export const DEFAULT_NAME_EXTENSION = "com.tokendesigner.app";
+export const DEFAULT_NAME_EXTENSION = "com.bezel.app";
 
 /** The config file `bezel init` writes and `bezel build` auto-loads from the project root. */
 export const DEFAULT_CONFIG_FILE = "bezel.json";

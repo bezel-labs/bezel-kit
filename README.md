@@ -51,8 +51,37 @@ any of it with `--dir`, `--variables-output`, `--contexts-output`, `--fonts-outp
 `--no-contexts`, `--no-fonts`, `--color`, `--unit`. An existing `bezel.json` is never
 overwritten without `--force`.
 
+Link the repo to a Bezel project with `--project <uuid>`, and pin which tokens the Bezel
+MCP fetches with `--tokens-version <v>` (`latest` or a published semver like `1.4.0`;
+default `latest`). These two flags update only their own key in an existing `bezel.json`,
+so no `--force` is needed:
+
+```sh
+bezel init --project 0f7a4c2e-1b3d-4e5f-8a9b-0c1d2e3f4a5b --tokens-version 1.4.0
+```
+
 `build` auto-loads `bezel.json` from the working directory when present. Run
 `bezel --help` for all options.
+
+### Config — `bezel.json`
+
+Any `BezelOptions` key can be set in `bezel.json` (`variablesOutput`, `contextsOutput`,
+`fontsOutput`, `colorFormat`, `dimensionUnit`, `nameExtension`, ...). Two keys describe
+the project link rather than the build:
+
+- `projectId` (optional) — the Bezel project this repo is linked to (a UUID).
+- `version` (recommended, default `latest`) — the tokens the Bezel MCP fetches: `latest`
+  for the project's latest snapshot, or a published semver like `1.4.0`.
+
+Both are read only by the Bezel MCP and ignored by `build`.
+
+```json
+{
+  "projectId": "0f7a4c2e-1b3d-4e5f-8a9b-0c1d2e3f4a5b",
+  "version": "latest",
+  "variablesOutput": "src/bezel/variables.css"
+}
+```
 
 Generated outputs live in their own directory because `build` overwrites them without
 asking and adds them to `.gitignore` — keeping them out of a hand-written `src/styles`

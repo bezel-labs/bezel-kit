@@ -9,6 +9,8 @@
  * JavaScript one.
  *
  * Non-destructive: an existing `bezel.json` is never overwritten without `force`.
+ * The one exception is the project link: passing `projectId` and/or `version` to an
+ * existing config updates just those keys in place, leaving everything else as-is.
  */
 import { existsSync } from "node:fs"
 import { readFile, writeFile } from "node:fs/promises"
@@ -50,6 +52,17 @@ export interface InitOptions {
   dimensionUnit?: "preserve" | "rem"
   /** Overwrite an existing `bezel.json`. Default: `false`. */
   force?: boolean
+  /**
+   * The Bezel project to link this repo to (a UUID). Written as `projectId`; on an
+   * existing config it updates just that key without needing `force`.
+   */
+  projectId?: string
+  /**
+   * Tokens version the Bezel MCP fetches: `"latest"` or a semver like `"1.4.0"`.
+   * Always written — defaults to `"latest"` on a fresh init; on an existing config it
+   * updates just that key without needing `force`.
+   */
+  version?: string
 }
 
 /** Outcome of {@link initConfig}. */
@@ -64,7 +77,21 @@ export interface InitResult {
   hasTokensFile: boolean
   /** Whether the project looks like TypeScript (drives the contexts/fonts defaults). */
   isTypeScript: boolean
+  /** True when only `projectId`/`version` were merged into an existing `bezel.json`. */
+  updated: boolean
+  /** The `projectId` that was in the file before an update, if any. */
+  previousProjectId?: string
+  /** The `version` that was in the file before an update, if any. */
+  previousVersion?: string
 }
+
+/** Whether `value` is a UUID — the shape of a Bezel project id. */
+export const isUuid = (value: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+
+/** Whether `value` is a valid tokens version: `"latest"` or a semver like `1.4.0`. */
+export const isTokensVersion = (value: string): boolean =>
+  value === "latest" || /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(value)
 
 /**
  * Join config path segments with forward slashes.
@@ -87,6 +114,15 @@ const joinPath = (dir: string, file: string): string =>
  * await initConfig({ outputDir: "packages/ui/src/bezel", fonts: false })
  */
 export async function initConfig(options: InitOptions = {}): Promise<InitResult> {
+  if (options.projectId !== undefined && !isUuid(options.projectId)) {
+    throw new Error(`bezel: --project must be a UUID, got "${options.projectId}"`)
+  }
+  if (options.version !== undefined && !isTokensVersion(options.version)) {
+    throw new Error(
+      `bezel: --tokens-version must be "latest" or a semver like 1.4.0, got "${options.version}"`,
+    )
+  }
+
   const cwd = options.cwd ?? process.cwd()
   const toAbs = (p: string) => (isAbsolute(p) ? p : resolve(cwd, p))
 
@@ -102,9 +138,11 @@ export async function initConfig(options: InitOptions = {}): Promise<InitResult>
   const wantsContexts = options.contextsOutput !== undefined || (options.contexts ?? isTypeScript)
   const wantsFonts = options.fontsOutput !== undefined || (options.fonts ?? isTypeScript)
 
-  const config: BezelOptions = {
-    variablesOutput: options.variablesOutput ?? joinPath(outputDir, VARIABLES_FILE),
-  }
+  // Link keys come first so the file reads project → version → outputs.
+  const config: BezelOptions = {}
+  if (options.projectId !== undefined) config.projectId = options.projectId
+  config.version = options.version ?? "latest"
+  config.variablesOutput = options.variablesOutput ?? joinPath(outputDir, VARIABLES_FILE)
   if (wantsContexts) {
     config.contextsOutput = options.contextsOutput ?? joinPath(outputDir, CONTEXTS_FILE)
   }
@@ -117,12 +155,37 @@ export async function initConfig(options: InitOptions = {}): Promise<InitResult>
   if (options.dimensionUnit) config.dimensionUnit = options.dimensionUnit
 
   if (existsSync(configPath) && !options.force) {
-    return { configPath, config, written: false, hasTokensFile, isTypeScript }
+    const wantsLinkUpdate = options.projectId !== undefined || options.version !== undefined
+    if (!wantsLinkUpdate) {
+      return { configPath, config, written: false, updated: false, hasTokensFile, isTypeScript }
+    }
+
+    // Link-only update: replace just the two link keys, keep every other key in place.
+    const existing = JSON.parse(await readFile(configPath, "utf8")) as BezelOptions
+    const { projectId: previousProjectId, version: previousVersion, ...rest } = existing
+    const merged: BezelOptions = {}
+    const projectId = options.projectId ?? previousProjectId
+    if (projectId !== undefined) merged.projectId = projectId
+    merged.version = options.version ?? previousVersion ?? "latest"
+    Object.assign(merged, rest)
+
+    await writeFile(configPath, `${JSON.stringify(merged, null, 2)}\n`, "utf8")
+
+    return {
+      configPath,
+      config: merged,
+      written: true,
+      updated: true,
+      previousProjectId,
+      previousVersion,
+      hasTokensFile,
+      isTypeScript,
+    }
   }
 
   await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8")
 
-  return { configPath, config, written: true, hasTokensFile, isTypeScript }
+  return { configPath, config, written: true, updated: false, hasTokensFile, isTypeScript }
 }
 
 /**

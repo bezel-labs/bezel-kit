@@ -18,6 +18,16 @@ export {
  * defaults make the zero-config case work.
  */
 export interface BezelOptions extends CssOptions {
+  /**
+   * The Bezel project this repo is linked to (a UUID). Read only by the Bezel MCP to
+   * know which project to pull `design-tokens.json` from — ignored by `build`.
+   */
+  projectId?: string
+  /**
+   * Which tokens the Bezel MCP fetches: `"latest"` (the project's latest snapshot) or a
+   * published semver like `"1.4.0"`. Missing means `"latest"`. Ignored by `build`.
+   */
+  version?: string
   /** Path to write the generated CSS. Default: `"src/bezel/variables.css"` (resolved from `cwd`). */
   variablesOutput?: string
   /** Base directory paths are resolved against. Default: `process.cwd()`. */

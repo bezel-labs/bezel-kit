@@ -27,6 +27,8 @@ init options:
       --no-fonts                Skip the generated FONTS module
       --color <format>          Color output: oklch | hex (default: oklch)
       --unit <mode>             Dimension unit: preserve | rem (default: preserve)
+      --project <uuid>          Link this repo to a Bezel project (writes projectId)
+      --tokens-version <v>      Tokens version the Bezel MCP fetches: latest | semver (default: latest)
   -f, --force                   Overwrite an existing bezel.json
 
 build options:
@@ -44,6 +46,7 @@ build options:
 A ${DEFAULT_CONFIG_FILE} file in the working directory is loaded automatically when -c is omitted.
 The contexts/fonts modules are TypeScript, so init only scaffolds them for a
 TypeScript project unless you pass the paths explicitly.
+--project and --tokens-version update only their own key in an existing bezel.json; no --force needed.
 `
 
 /** Load options from a `.json` or `.js`/`.mjs` config file. */
@@ -68,6 +71,8 @@ const OPTIONS = {
   "fonts-output": { type: "string" },
   color: { type: "string" },
   unit: { type: "string" },
+  project: { type: "string" },
+  "tokens-version": { type: "string" },
   stdout: { type: "boolean" },
   "no-gitignore": { type: "boolean" },
   "no-contexts": { type: "boolean" },
@@ -75,6 +80,9 @@ const OPTIONS = {
   force: { type: "boolean", short: "f" },
   help: { type: "boolean", short: "h" },
 } as const
+
+const TOKENS_FILE_HINT =
+  "Add design-tokens.json to the project root — ask your AI agent for it via the\n     Bezel MCP, or download it from your project."
 
 /** `bezel init` — scaffold a bezel.json, then print what to do next. */
 async function runInit(values: Values): Promise<void> {
@@ -90,13 +98,33 @@ async function runInit(values: Values): Promise<void> {
     colorFormat: values.color as BezelOptions["colorFormat"],
     dimensionUnit: values.unit as BezelOptions["dimensionUnit"],
     force: values.force,
+    projectId: values.project,
+    version: values["tokens-version"],
   })
 
   const configName = relative(cwd, result.configPath) || DEFAULT_CONFIG_FILE
 
+  if (result.updated) {
+    if (values.project) {
+      const changed = result.previousProjectId && result.previousProjectId !== values.project
+      process.stderr.write(
+        changed
+          ? `bezel: updated projectId in ${configName} (was ${result.previousProjectId})\n`
+          : `bezel: set projectId in ${configName}\n`,
+      )
+    }
+    if (result.config.version !== result.previousVersion) {
+      process.stderr.write(`bezel: set version to ${result.config.version} in ${configName}\n`)
+    }
+    if (!result.hasTokensFile) {
+      process.stderr.write(`\n${TOKENS_FILE_HINT}\n`)
+    }
+    return
+  }
+
   if (!result.written) {
     process.stderr.write(
-      `bezel: ${configName} already exists — leaving it alone. Re-run with --force to overwrite.\n`,
+      `bezel: ${configName} already exists — leaving it alone. Re-run with --force to overwrite, or pass --project <uuid> / --tokens-version <v> to just update the project link.\n`,
     )
     process.exitCode = 1
     return
@@ -117,9 +145,7 @@ async function runInit(values: Values): Promise<void> {
   const steps: string[] = []
 
   if (!result.hasTokensFile) {
-    steps.push(
-      "Add design-tokens.json to the project root — ask your AI agent for it via the\n     Bezel MCP, or download it from your project.",
-    )
+    steps.push(TOKENS_FILE_HINT)
   }
   if (!scripts["tokens"]) {
     steps.push('Add "tokens": "bezel build" to your package.json scripts.')

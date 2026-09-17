@@ -120,5 +120,5 @@ npm run typecheck
 ## License
 
 [PolyForm Shield 1.0.0](./LICENSE) — free to use, modify, and redistribute for any purpose
-**except** building or providing a product that competes with [Bezel](https://bezel.new).
+**except** building or providing a product that competes with [Bezel](https://bezel.new/?utm_source=github&utm_medium=referral&utm_content=bezel-kit-readme).
 Open-source, internal, and commercial use are all permitted within that bound.

@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/bezel-labs/bezel-kit/compare/v0.4.0...v0.5.0) (2026-10-05)
+
+
+### Features
+
+* add includeAll option to emit variables for tokens without an exportName ([1580352](https://github.com/bezel-labs/bezel-kit/commit/1580352eac9ccd3a9520b26185d78fefd0477e10))
+
 # [0.4.0](https://github.com/bezel-labs/bezel-kit/compare/v0.3.0...v0.4.0) (2026-08-29)
 
 

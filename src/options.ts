@@ -18,6 +18,14 @@ export interface CssOptions {
   dimensionUnit?: "preserve" | "rem"
   /** `$extensions` key holding the `exportName` array. Default: `"com.bezel.app"`. */
   nameExtension?: string
+  /**
+   * Also emit a variable for every token that has no `exportName`, named by kebab-casing its
+   * full path (e.g. `base.color.primary.500` → `--base-color-primary-500`). Tokens with an
+   * `exportName` still emit only their export names. Has no effect when no token declares an
+   * `exportName`, since every token is then emitted with a path-derived name already.
+   * Default: `false`.
+   */
+  includeAll?: boolean
 }
 
 /** Fully-resolved CSS-transform options (no `undefined`). */
@@ -26,6 +34,7 @@ export interface ResolvedCssOptions {
   colorFormat: "oklch" | "hex"
   dimensionUnit: "preserve" | "rem"
   nameExtension: string
+  includeAll: boolean
 }
 
 /** Apply defaults to {@link CssOptions}. Pure — no path resolution, no `node:*`. */
@@ -40,5 +49,6 @@ export function resolveCssOptions(options: CssOptions = {}): ResolvedCssOptions 
     colorFormat: options.colorFormat ?? "oklch",
     dimensionUnit: options.dimensionUnit ?? "preserve",
     nameExtension: options.nameExtension ?? DEFAULT_NAME_EXTENSION,
+    includeAll: options.includeAll ?? false,
   }
 }

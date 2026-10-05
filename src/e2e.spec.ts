@@ -40,6 +40,24 @@ describe("generateVariablesCss (e2e)", () => {
     expect(css).toMatch(/\.light \{[^}]*--foreground: oklch\(0\.36 0\.044 186\.5\);/)
   })
 
+  it("includeAll adds kebab-cased path variables for tokens without an exportName", async () => {
+    const css = await generateVariablesCss({ cwd: fixturesDir, write: false, includeAll: true })
+
+    expect(css).toContain("--base-color-green-500: oklch(0.8 0.18 151.7);")
+    expect(css).toContain("--base-color-aqua-500: oklch(0.75 0.12 200);")
+    expect(css).toContain("--base-typography-font-size-sm: 14px;")
+    // An empty exportName ([""]) means no authored name, so it gets a path variable too.
+    expect(css).toContain("--base-spacing-md: 16px;")
+
+    // Export-named tokens keep only their export names.
+    expect(css).toContain("--primary: oklch(0.8 0.18 151.7);")
+    expect(css).not.toContain("--base-color-neutral-foreground")
+    expect(css).not.toContain("--semantic-color-primary")
+
+    // Off by default.
+    expect(await generateVariablesCss({ cwd: fixturesDir, write: false })).not.toContain("--base-")
+  })
+
   it("tokensToCss (isomorphic) matches the file-based output", async () => {
     const tokens = JSON.parse(await readFile(tokensFile, "utf8")) as DtcgNode
     const css = tokensToCss(tokens)

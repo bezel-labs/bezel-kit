@@ -27,6 +27,8 @@ init options:
       --no-fonts                Skip the generated FONTS module
       --color <format>          Color output: oklch | hex (default: oklch)
       --unit <mode>             Dimension unit: preserve | rem (default: preserve)
+      --include-all             Also emit variables for tokens without an exportName
+                                (kebab-cased full path, e.g. --base-color-primary-500)
       --project <uuid>          Link this repo to a Bezel project (writes projectId)
       --tokens-version <v>      Tokens version the Bezel MCP fetches: latest | semver (default: latest)
   -f, --force                   Overwrite an existing bezel.json
@@ -38,6 +40,8 @@ build options:
       --fonts-output <path>     Also write a generated TS module exporting FONTS
       --color <format>          Color output: oklch | hex (default: oklch)
       --unit <mode>             Dimension unit: preserve | rem (default: preserve)
+      --include-all             Also emit variables for tokens without an exportName
+                                (kebab-cased full path, e.g. --base-color-primary-500)
       --stdout                  Print CSS to stdout instead of writing the file
       --no-gitignore            Don't create/update .gitignore for generated files
 
@@ -71,6 +75,7 @@ const OPTIONS = {
   "fonts-output": { type: "string" },
   color: { type: "string" },
   unit: { type: "string" },
+  "include-all": { type: "boolean" },
   project: { type: "string" },
   "tokens-version": { type: "string" },
   stdout: { type: "boolean" },
@@ -97,6 +102,7 @@ async function runInit(values: Values): Promise<void> {
     fonts: values["no-fonts"] ? false : undefined,
     colorFormat: values.color as BezelOptions["colorFormat"],
     dimensionUnit: values.unit as BezelOptions["dimensionUnit"],
+    includeAll: values["include-all"],
     force: values.force,
     projectId: values.project,
     version: values["tokens-version"],
@@ -169,6 +175,7 @@ async function runBuild(values: Values): Promise<void> {
   if (values["fonts-output"]) options.fontsOutput = values["fonts-output"]
   if (values.color) options.colorFormat = values.color as BezelOptions["colorFormat"]
   if (values.unit) options.dimensionUnit = values.unit as BezelOptions["dimensionUnit"]
+  if (values["include-all"]) options.includeAll = true
   if (values.stdout) options.write = false
   if (values["no-gitignore"]) options.gitignore = false
 

@@ -1,7 +1,8 @@
+import { emitCss } from "./emit"
 import { flattenForContext } from "./collapse"
 import { aliasTarget, resolveReferences } from "./resolve"
 import { serializeValue } from "./serialize"
-import { cssNames, nameFromPath, usesExportNames } from "./name"
+import { cssNames, nameFromPath, pathToKebabName, usesExportNames } from "./name"
 import { DEFAULT_NAME_EXTENSION } from "./defaults"
 import type { ResolvedCssOptions } from "./options"
 import type { DtcgNode, FlatToken } from "./types"
@@ -11,6 +12,7 @@ const OPTS: ResolvedCssOptions = {
   colorFormat: "oklch",
   dimensionUnit: "preserve",
   nameExtension: DEFAULT_NAME_EXTENSION,
+  includeAll: false,
 }
 
 describe("flattenForContext", () => {
@@ -137,5 +139,77 @@ describe("naming", () => {
   it("detects exportName usage", () => {
     expect(usesExportNames([exported], DEFAULT_NAME_EXTENSION)).toBe(true)
     expect(usesExportNames([{ path: "a", value: "x" }], DEFAULT_NAME_EXTENSION)).toBe(false)
+  })
+
+  it("kebab-cases the full path for generated names", () => {
+    expect(pathToKebabName("base.color.primary.500")).toBe("base-color-primary-500")
+    expect(pathToKebabName("semantic.color.primary.default")).toBe("semantic-color-primary-default")
+    expect(pathToKebabName("base.typography.fontFamily.sans")).toBe("base-typography-font-family-sans")
+    expect(pathToKebabName("base.spacing.2xl")).toBe("base-spacing-2xl")
+    expect(pathToKebabName("base.Color Scale.Brand_Blue")).toBe("base-color-scale-brand-blue")
+  })
+})
+
+describe("includeAll", () => {
+  const ext = (...names: string[]) => ({ [DEFAULT_NAME_EXTENSION]: { exportName: names } })
+  const tree: DtcgNode = {
+    base: {
+      color: {
+        red: { $root: { $value: "red" }, $type: "color" },
+        blue: { $root: { $value: "blue" }, $type: "color" },
+      },
+    },
+    semantic: {
+      color: {
+        primary: {
+          $root: { $value: "{base.color.blue}" },
+          $type: "color",
+          $extensions: ext("primary"),
+        },
+      },
+    },
+  }
+
+  it("emits only export-named tokens by default", () => {
+    const css = emitCss(tree, OPTS)
+    expect(css).toContain("--primary: blue;")
+    expect(css).not.toContain("--base-color-red")
+    expect(css).not.toContain("--base-color-blue")
+  })
+
+  it("also emits kebab-cased path variables for unnamed tokens when set", () => {
+    const css = emitCss(tree, { ...OPTS, includeAll: true })
+    expect(css).toContain("--primary: blue;")
+    expect(css).toContain("--base-color-red: red;")
+    expect(css).toContain("--base-color-blue: blue;")
+    // A token with an export name is not duplicated under its path.
+    expect(css).not.toContain("--semantic-color-primary")
+  })
+
+  it("lets an export name win over a generated path name", () => {
+    const clash: DtcgNode = {
+      ...tree,
+      semantic: {
+        color: {
+          primary: {
+            $root: { $value: "{base.color.blue}" },
+            $type: "color",
+            $extensions: ext("base-color-red"),
+          },
+        },
+      },
+    }
+    const css = emitCss(clash, { ...OPTS, includeAll: true })
+    expect(css).toContain("--base-color-red: blue;")
+    expect(css).not.toContain("--base-color-red: red;")
+    expect(css).toContain("--base-color-blue: blue;")
+  })
+
+  it("leaves output unchanged when no token declares an exportName", () => {
+    const plain: DtcgNode = {
+      base: { color: { red: { $root: { $value: "red" }, $type: "color" } } },
+    }
+    expect(emitCss(plain, { ...OPTS, includeAll: true })).toBe(emitCss(plain, OPTS))
+    expect(emitCss(plain, OPTS)).toContain("--color-red: red;")
   })
 })

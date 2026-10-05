@@ -1,5 +1,5 @@
 import { flattenForContext } from "./collapse"
-import { cssNames, usesExportNames } from "./name"
+import { cssNames, pathToKebabName, usesExportNames } from "./name"
 import { resolveReferences } from "./resolve"
 import { serializeValue } from "./serialize"
 import type { ResolvedCssOptions } from "./options"
@@ -16,9 +16,24 @@ function buildContextVars(
   options: ResolvedCssOptions,
 ): VarMap {
   const flat = resolveReferences(flattenForContext(tokens, context))
+  const includeUnnamed = useExportName && options.includeAll
+
+  // Export names always win over a generated path name, so collect them up front.
+  const exportNames = new Set<string>()
+  if (includeUnnamed) {
+    for (const token of flat.values()) {
+      for (const name of cssNames(token, options.nameExtension, true)) exportNames.add(name)
+    }
+  }
+
   const vars: VarMap = new Map()
   for (const token of flat.values()) {
-    const names = cssNames(token, options.nameExtension, useExportName)
+    let names = cssNames(token, options.nameExtension, useExportName)
+    if (names.length === 0 && includeUnnamed) {
+      const generated = pathToKebabName(token.path)
+      // First token wins among generated names; never shadow an export name.
+      if (generated && !exportNames.has(generated) && !vars.has(generated)) names = [generated]
+    }
     if (names.length === 0) continue
     const value = serializeValue(token.value, options)
     for (const name of names) vars.set(name, value)

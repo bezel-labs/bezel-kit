@@ -50,6 +50,8 @@ export interface InitOptions {
   colorFormat?: "oklch" | "hex"
   /** Written to the config only when set — otherwise the build default applies. */
   dimensionUnit?: "preserve" | "rem"
+  /** Written to the config only when `true` — otherwise the build default (`false`) applies. */
+  includeAll?: boolean
   /** Overwrite an existing `bezel.json`. Default: `false`. */
   force?: boolean
   /**
@@ -153,6 +155,7 @@ export async function initConfig(options: InitOptions = {}): Promise<InitResult>
   // and keeps tracking the library defaults for everything else.
   if (options.colorFormat) config.colorFormat = options.colorFormat
   if (options.dimensionUnit) config.dimensionUnit = options.dimensionUnit
+  if (options.includeAll) config.includeAll = true
 
   if (existsSync(configPath) && !options.force) {
     const wantsLinkUpdate = options.projectId !== undefined || options.version !== undefined

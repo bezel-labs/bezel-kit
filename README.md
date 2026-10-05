@@ -23,6 +23,7 @@ import { tokensToCss, type DtcgNode } from "@bezel-labs/bezel-kit"
 
 const css: string = tokensToCss(tokens)
 const hexCss = tokensToCss(tokens, { colorFormat: "hex" })
+const allCss = tokensToCss(tokens, { includeAll: true }) // see "Variable names" below
 ```
 
 ### Node — `generateVariablesCss` (reads/writes files)
@@ -66,7 +67,7 @@ bezel init --project 0f7a4c2e-1b3d-4e5f-8a9b-0c1d2e3f4a5b --tokens-version 1.4.0
 ### Config — `bezel.json`
 
 Any `BezelOptions` key can be set in `bezel.json` (`variablesOutput`, `contextsOutput`,
-`fontsOutput`, `colorFormat`, `dimensionUnit`, `nameExtension`, ...). Two keys describe
+`fontsOutput`, `colorFormat`, `dimensionUnit`, `nameExtension`, `includeAll`, ...). Two keys describe
 the project link rather than the build:
 
 - `projectId` (optional) — the Bezel project this repo is linked to (a UUID).
@@ -86,6 +87,34 @@ Both are read only by the Bezel MCP and ignored by `build`.
 Generated outputs live in their own directory because `build` overwrites them without
 asking and adds them to `.gitignore` — keeping them out of a hand-written `src/styles`
 means a generic name like `variables.css` can never clobber a file you wrote.
+
+## Variable names
+
+Bezel tokens carry an `exportName` list (under the `nameExtension` key) that names their CSS
+variables — one token can emit several (`foreground`, `card-foreground`, ...). By default only
+tokens with an `exportName` emit a variable; the rest (for example the `base.*` color ramps)
+exist only as reference targets, and references to them are resolved to literal values.
+
+Set `includeAll` (`--include-all` on the CLI, `"includeAll": true` in `bezel.json`) to also
+emit a variable for every token without an `exportName`, named by kebab-casing its full path:
+
+```css
+:root {
+  --primary: oklch(0.8 0.18 151.7);                 /* exportName: primary */
+  --base-color-green-500: oklch(0.8 0.18 151.7);    /* generated from base.color.green.500 */
+}
+```
+
+- Tokens that have an `exportName` keep only their export names; they are not duplicated under
+  their path.
+- An export name always wins if it equals a generated name, and the first token wins among
+  generated names.
+- A token whose `exportName` is only empty strings counts as having no name, so it is emitted
+  under its path.
+- If no token in the file has an `exportName` at all, every token is already emitted with a
+  path-derived name (`--color-primary-default`), and `includeAll` changes nothing.
+- Per-context blocks work as before: they contain only the variables whose value differs from
+  `:root`.
 
 ## Upgrading to 0.3.0
 

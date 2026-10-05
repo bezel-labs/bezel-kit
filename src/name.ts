@@ -36,6 +36,25 @@ export function nameFromPath(path: string): string {
 }
 
 /**
+ * Derive a CSS variable name from the full dot-path, kebab-cased (e.g.
+ * `base.color.primary.500` → `base-color-primary-500`). Unlike {@link nameFromPath} it keeps
+ * every segment, so the name identifies one token unambiguously.
+ */
+export function pathToKebabName(path: string): string {
+  return path
+    .split(".")
+    .map((segment) =>
+      segment
+        .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, ""),
+    )
+    .filter((segment) => segment.length > 0)
+    .join("-")
+}
+
+/**
  * Resolve the CSS variable name(s) a token emits (without the leading `--`).
  *
  * - In **exportName mode** (`useExportName`), names come solely from the token's

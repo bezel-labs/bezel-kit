@@ -101,6 +101,15 @@ describe("initConfig", () => {
     expect(config.dimensionUnit).toBe("rem")
   })
 
+  it("persists includeAll only when it is true", async () => {
+    await initConfig({ cwd, includeAll: true })
+    expect((await readConfig()).includeAll).toBe(true)
+
+    await writeFile(join(cwd, "bezel.json"), "{}\n")
+    await initConfig({ cwd, includeAll: false, force: true })
+    expect(await readConfig()).not.toHaveProperty("includeAll")
+  })
+
   it("never overwrites an existing bezel.json without force", async () => {
     await writeFile(join(cwd, "bezel.json"), '{"variablesOutput":"mine.css"}\n')
 

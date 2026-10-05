@@ -62,6 +62,7 @@ export interface ResolvedOptions {
   colorFormat: "oklch" | "hex"
   dimensionUnit: "preserve" | "rem"
   nameExtension: string
+  includeAll: boolean
   contextsOutput: string | null
   fontsOutput: string | null
   write: boolean

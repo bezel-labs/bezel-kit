@@ -1,3 +1,10 @@
+# [0.7.0](https://github.com/bezel-labs/bezel-kit/compare/v0.6.0...v0.7.0) (2026-10-14)
+
+
+### Features
+
+* add arrow-key selection to the MCP installer ([789b419](https://github.com/bezel-labs/bezel-kit/commit/789b419ac3cffc1a97e93639dd2002aaf0242c8c))
+
 # [0.6.0](https://github.com/bezel-labs/bezel-kit/compare/v0.5.0...v0.6.0) (2026-10-14)
 
 

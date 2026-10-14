@@ -1,3 +1,10 @@
+# [0.6.0](https://github.com/bezel-labs/bezel-kit/compare/v0.5.0...v0.6.0) (2026-10-14)
+
+
+### Features
+
+* add install-mcp command for AI coding tools ([2d335d7](https://github.com/bezel-labs/bezel-kit/commit/2d335d7fbbd1bbed4b18a2c55d27012616b9b5fc))
+
 # [0.5.0](https://github.com/bezel-labs/bezel-kit/compare/v0.4.0...v0.5.0) (2026-10-05)
 
 

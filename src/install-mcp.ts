@@ -1,7 +1,6 @@
 import { spawnSync } from "node:child_process"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, resolve } from "node:path"
-import { createInterface } from "node:readline/promises"
 
 export const MCP_URL = "https://mcp.bezel.new/mcp"
 export const CLIENTS = ["claude-code", "codex", "cursor", "vscode", "other"] as const
@@ -75,15 +74,24 @@ export async function installMcp(clientName?: string): Promise<void> {
     if (!process.stdin.isTTY) {
       throw new Error(`Choose a client with --client ${CLIENTS.join("|")}.`)
     }
-    const prompt = createInterface({ input: process.stdin, output: process.stdout })
+    const { default: select } = await import("@inquirer/select")
     try {
-      console.log(
-        "Connect Bezel to your coding tool:\n1. Claude Code (this project)\n2. Codex (your user configuration)\n3. Cursor (this project)\n4. VS Code (this project)\n5. Other / hosted tool",
-      )
-      const answer = (await prompt.question("Choose 1–5: ")).trim()
-      choice = CLIENTS[Number(answer) - 1] ?? answer
-    } finally {
-      prompt.close()
+      choice = await select<McpClient>({
+        message: "Connect Bezel to your coding tool:",
+        choices: [
+          { name: "Claude Code (this project)", value: "claude-code" },
+          { name: "Codex (your user configuration)", value: "codex" },
+          { name: "Cursor (this project)", value: "cursor" },
+          { name: "VS Code (this project)", value: "vscode" },
+          { name: "Other / hosted tool", value: "other" },
+        ],
+      })
+    } catch (error) {
+      if (error instanceof Error && error.name === "ExitPromptError") {
+        console.log("Setup cancelled.")
+        return
+      }
+      throw error
     }
   }
   if (!CLIENTS.includes(choice as McpClient))

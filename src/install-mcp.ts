@@ -165,6 +165,6 @@ export async function installMcp(clientName?: string): Promise<void> {
         : "Next: open or reload your coding tool and sign in to Bezel when prompted.",
   )
   console.log(
-    '\nThen open your current project in the assistant and ask:\n"Set up Bezel in this project. Help me choose my Bezel project, generate my token files, and offer the recommended live preview setup."\n\nThe assistant will install Bezel Kit, configure your output folder, and ask before adding Crystal for live preview. A host with file and terminal access can perform setup; other hosts provide manual steps.',
+    '\nThen open your current project in the assistant and ask:\n"Set up Bezel in this project."',
   )
 }

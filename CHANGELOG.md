@@ -1,3 +1,10 @@
+## [0.7.1](https://github.com/bezel-labs/bezel-kit/compare/v0.7.0...v0.7.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **cli:** simplify the Bezel setup prompt ([3746022](https://github.com/bezel-labs/bezel-kit/commit/3746022019f5bd53635a9e639c5bf183465d99ea))
+
 # [0.7.0](https://github.com/bezel-labs/bezel-kit/compare/v0.6.0...v0.7.0) (2026-10-14)
 
 

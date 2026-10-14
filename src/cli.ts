@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url"
 import { parseArgs } from "node:util"
 import { relative, resolve } from "node:path"
 import { generateVariablesCss } from "./node"
+import { installMcp } from "./install-mcp"
 import { initConfig, readPackageScripts } from "./init"
 import type { BezelOptions } from "./config"
 import { DEFAULT_CONFIG_FILE, DEFAULT_VARIABLES_OUTPUT } from "./defaults"
@@ -12,6 +13,7 @@ import { DEFAULT_CONFIG_FILE, DEFAULT_VARIABLES_OUTPUT } from "./defaults"
 const USAGE = `bezel — convert a W3C Design Tokens (DTCG) file into a scoped variables.css
 
 Usage:
+  bezel install-mcp [--client <name>]  Connect claude-code, codex, cursor, vscode, or other
   bezel init [options]     Create a bezel.json for this project
   bezel build [options]    Generate the outputs (default command)
 
@@ -68,6 +70,7 @@ async function loadConfig(path: string): Promise<BezelOptions> {
 type Values = ReturnType<typeof parseArgs<{ options: typeof OPTIONS }>>["values"]
 
 const OPTIONS = {
+  client: { type: "string" },
   config: { type: "string", short: "c" },
   dir: { type: "string" },
   "variables-output": { type: "string" },
@@ -201,6 +204,11 @@ async function main(argv: string[]): Promise<void> {
   }
 
   const command = positionals[0] ?? "build"
+
+  if (command === "install-mcp") {
+    await installMcp(values.client)
+    return
+  }
 
   if (command === "init") {
     await runInit(values)

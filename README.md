@@ -151,3 +151,15 @@ npm run typecheck
 [PolyForm Shield 1.0.0](./LICENSE) — free to use, modify, and redistribute for any purpose
 **except** building or providing a product that competes with [Bezel](https://bezel.new/?utm_source=github&utm_medium=referral&utm_content=bezel-kit-readme).
 Open-source, internal, and commercial use are all permitted within that bound.
+
+## Connect your AI coding tool
+
+```sh
+npx @bezel-labs/bezel-kit@latest install-mcp
+```
+
+Choose Claude Code, Codex, Cursor, VS Code, or another tool. Claude Code, Cursor, and VS Code use project configuration; Codex uses its user configuration. Complete the sign-in instructions, then ask your assistant: **“Set up Bezel in this project.”** The assistant guides project selection, installs Bezel Kit, generates token files, and offers recommended live preview using Crystal. Crystal is optional and installed only if you opt in.
+
+Pass `--client claude-code|codex|cursor|vscode|other` to skip the menu. Existing unrelated MCP settings are preserved; conflicting Bezel entries are left for you to resolve. Cursor/VS Code JSON files are backed up before editing; configs with comments require manual setup. Hosted tools receive connection instructions. The installer does not authenticate on your behalf or install project dependencies.
+
+This command is available after publishing a release containing it; until then use the local build (`node dist/cli.js install-mcp`) or the [manual connection instructions](https://docs.bezel.new/docs/mcp-server/setup).

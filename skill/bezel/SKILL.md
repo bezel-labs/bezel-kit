@@ -24,8 +24,7 @@ Nothing in this repo pushes back to Bezel. A change that must survive the next s
 3. After any change to `design-tokens.json` or `bezel.json`, run the tokens build: `npm run tokens` when that script exists, otherwise `npx bezel build` (use the repo's package manager runner). Confirm the outputs were rewritten before finishing.
 4. Only tokens with an `exportName` become CSS variables unless `bezel.json` sets `"includeAll": true`. Adding a token without an `exportName` produces no variable.
 5. Never pass `--force` to `bezel init`; it discards the existing `bezel.json`. `--project` and `--tokens-version` update their own keys without it.
-6. Do not start dev servers, preview servers, or watchers to verify a change. Rebuild and inspect the generated CSS instead.
-7. Local edits to `design-tokens.json` are overwritten by the next sync from Bezel. Tell the user when a change should be made in the Bezel app instead, and never silently sync over their local edits.
+6. Local edits to `design-tokens.json` are overwritten by the next sync from Bezel. Tell the user when a change should be made in the Bezel app instead, and never silently sync over their local edits.
 
 ## The tokens file
 

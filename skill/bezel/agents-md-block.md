@@ -5,5 +5,5 @@
 - After changing `design-tokens.json` or `bezel.json`, run `npm run tokens` (or `npx bezel build`) and check the outputs were rewritten.
 - Dark mode and other contexts are keys inside each token (`$root`, `dark`, `light`). Add a value under the context key instead of writing a CSS override.
 - The Bezel app is the source of truth. Local token edits are replaced by the next sync (`get-design-tokens-file` via the Bezel MCP, or a download from the app), so tell the user when a change should be made in Bezel.
-- Never run `bezel init --force`. Never start dev servers to verify token changes.
+- Never run `bezel init --force`; it discards the existing `bezel.json`. Use `--project` or `--tokens-version` to update a single key.
 - Full guidance: the `bezel` skill in `.claude/skills/bezel/SKILL.md` or `.agents/skills/bezel/SKILL.md`.

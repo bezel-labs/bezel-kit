@@ -1,3 +1,10 @@
+# [0.8.0](https://github.com/bezel-labs/bezel-kit/compare/v0.7.1...v0.8.0) (2026-10-29)
+
+
+### Features
+
+* add install-skills command and agent skill ([9e5011e](https://github.com/bezel-labs/bezel-kit/commit/9e5011e0dea566940abb28eec8388c8f33368f96))
+
 ## [0.7.1](https://github.com/bezel-labs/bezel-kit/compare/v0.7.0...v0.7.1) (2026-10-14)
 
 

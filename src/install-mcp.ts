@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, resolve } from "node:path"
+import { installSkills, reportInstallSkills, skillClientForMcpClient } from "./install-skills"
 
 export const MCP_URL = "https://mcp.bezel.new/mcp"
 export const CLIENTS = ["claude-code", "codex", "cursor", "vscode", "other"] as const
@@ -68,7 +69,18 @@ export function mergeMcpConfig(raw: string, client: "cursor" | "vscode"): string
   return `${JSON.stringify({ ...config, [key]: { ...servers, bezel: entry } }, null, 2)}\n`
 }
 
-export async function installMcp(clientName?: string): Promise<void> {
+export interface InstallMcpOptions {
+  /**
+   * Also install the Bezel agent skill for the same client. `true` installs without
+   * asking, `false` skips, and `undefined` asks when stdin is a TTY.
+   */
+  skills?: boolean
+}
+
+export async function installMcp(
+  clientName?: string,
+  options: InstallMcpOptions = {},
+): Promise<void> {
   let choice = clientName
   if (!choice) {
     if (!process.stdin.isTTY) {
@@ -167,4 +179,27 @@ export async function installMcp(clientName?: string): Promise<void> {
   console.log(
     '\nThen open your current project in the assistant and ask:\n"Set up Bezel in this project."',
   )
+
+  if (await wantsSkills(options.skills)) {
+    console.log("")
+    reportInstallSkills(await installSkills({ client: skillClientForMcpClient(client) }))
+  }
+}
+
+async function wantsSkills(flag: boolean | undefined): Promise<boolean> {
+  if (flag !== undefined) return flag
+  if (!process.stdin.isTTY) return false
+  const { default: select } = await import("@inquirer/select")
+  try {
+    return await select<boolean>({
+      message: "Also install the Bezel agent skill into this repo (SKILL.md + AGENTS.md rules)?",
+      choices: [
+        { name: "Yes (recommended)", value: true },
+        { name: "Not now (run `bezel install-skills` later)", value: false },
+      ],
+    })
+  } catch (error) {
+    if (error instanceof Error && error.name === "ExitPromptError") return false
+    throw error
+  }
 }

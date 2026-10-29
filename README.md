@@ -41,8 +41,10 @@ await generateVariablesCss()
 ### CLI
 
 ```sh
-bezel init [options]    # create a bezel.json for this project
-bezel build [options]   # generate the outputs (default command)
+bezel init [options]            # create a bezel.json for this project
+bezel build [options]           # generate the outputs (default command)
+bezel install-mcp [--client]    # connect an AI coding tool to the Bezel MCP
+bezel install-skills [--client] # teach an AI coding tool how to work with Bezel
 ```
 
 `init` writes the config so you don't have to author it by hand, picking defaults from
@@ -133,7 +135,9 @@ Either re-export `design-tokens.json` from Bezel, or pin the old key in `bezel.j
 
 - **Core (`.`):** `tokensToCss`, `emitCss`, `resolveCssOptions`, `getContexts`,
   `formatContextsModule`, `getFonts`, `formatFontsModule`, the `DEFAULT_CONTEXTS` /
-  `DEFAULT_NAME_EXTENSION` defaults, plus the related types.
+  `DEFAULT_NAME_EXTENSION` defaults, `AGENT_SKILL`, plus the related types.
+- **Agent skill (`./agent-skill`):** just `AGENT_SKILL` — the `bezel` skill text (`SKILL.md`,
+  references, the `AGENTS.md` block, and a short summary for MCP `instructions`).
 - **Node (`./node`):** everything above, plus `generateVariablesCss`, `resolveOptions`,
   `initConfig`, and the `DEFAULT_OUTPUT_DIR` / `DEFAULT_CONFIG_FILE` defaults.
 
@@ -141,7 +145,8 @@ Either re-export `design-tokens.json` from Bezel, or pin the old key in `bezel.j
 
 ```bash
 npm install     # install deps
-npm run build   # bundle ESM + CJS + types (index, node, cli) with tsup
+npm run build   # regenerate src/agent-skill.ts, then bundle ESM + CJS + types with tsup
+npm run gen:skill  # regenerate src/agent-skill.ts from skill/bezel/*.md
 npm test        # run the Jest test suite
 npm run typecheck
 ```
@@ -163,3 +168,18 @@ Use the up/down arrow keys to choose Claude Code, Codex, Cursor, VS Code, or ano
 Pass `--client claude-code|codex|cursor|vscode|other` to skip the menu. Existing unrelated MCP settings are preserved; conflicting Bezel entries are left for you to resolve. Cursor/VS Code JSON files are backed up before editing; configs with comments require manual setup. Hosted tools receive connection instructions. The installer does not authenticate on your behalf or install project dependencies.
 
 This command is available after publishing a release containing it; until then use the local build (`node dist/cli.js install-mcp`) or the [manual connection instructions](https://docs.bezel.new/docs/mcp-server/setup).
+
+### Teach your AI coding agent about Bezel
+
+```sh
+npx @bezel-labs/bezel-kit@latest install-skills
+```
+
+Coding agents only learn the Bezel workflow if something in the repo tells them. `install-skills` writes two things:
+
+- The **`bezel` skill** (`SKILL.md` plus `references/`) into `.claude/skills/bezel/` for Claude Code and/or `.agents/skills/bezel/` for Codex and Cursor. The agent loads it whenever a task touches design tokens, theme colors, CSS variables, dark mode, or the generated `src/bezel` files, and learns to edit `design-tokens.json` and rebuild instead of hand-editing generated output.
+- A short **rules block in `AGENTS.md`** (created if missing) between `<!-- bezel:start -->` and `<!-- bezel:end -->` markers, so the hard rules load in every session. Everything outside the markers is left untouched. If a `CLAUDE.md` exists without an `@AGENTS.md` include, the command prints a reminder rather than editing it.
+
+Pass `--client claude-code|codex|cursor|all` to skip the menu and `--no-agents-md` to write only the skill folder. Re-running is safe: files are only rewritten when their content changed, an edited file is backed up once to `<file>.bezel-backup`, and nothing is deleted. `install-mcp` offers to run this for you (or pass `--skills`), and `bezel init` reminds you when no skill is installed yet.
+
+The skill text is also exported from the package as `AGENT_SKILL` (`@bezel-labs/bezel-kit` and `@bezel-labs/bezel-kit/agent-skill`), which is what the Bezel MCP server serves to agents that have no local copy. The markdown under `skill/bezel/` is the source; `npm run gen:skill` regenerates `src/agent-skill.ts`.

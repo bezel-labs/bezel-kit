@@ -18,6 +18,8 @@ export { resolveCssOptions } from "./options"
 export { getContexts, formatContextsModule, DEFAULT_CONTEXT_NAME } from "./contexts"
 export { getFonts, formatFontsModule } from "./fonts"
 export type { FontDef } from "./fonts"
+export { AGENT_SKILL } from "./agent-skill"
+export type { AgentSkill } from "./agent-skill"
 
 /**
  * Convert a DTCG token object into a scoped `variables.css` string.

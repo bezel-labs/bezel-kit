@@ -6,6 +6,7 @@ import { parseArgs } from "node:util"
 import { relative, resolve } from "node:path"
 import { generateVariablesCss } from "./node"
 import { installMcp } from "./install-mcp"
+import { installSkillsCommand, skillDirectories } from "./install-skills"
 import { initConfig, readPackageScripts } from "./init"
 import type { BezelOptions } from "./config"
 import { DEFAULT_CONFIG_FILE, DEFAULT_VARIABLES_OUTPUT } from "./defaults"
@@ -13,11 +14,21 @@ import { DEFAULT_CONFIG_FILE, DEFAULT_VARIABLES_OUTPUT } from "./defaults"
 const USAGE = `bezel — convert a W3C Design Tokens (DTCG) file into a scoped variables.css
 
 Usage:
-  bezel install-mcp [--client <name>]  Connect claude-code, codex, cursor, vscode, or other
+  bezel install-mcp [--client <name>] [--skills]
+                           Connect claude-code, codex, cursor, vscode, or other
+  bezel install-skills [--client <name>] [--no-agents-md]
+                           Teach claude-code, codex, cursor, or all about Bezel
   bezel init [options]     Create a bezel.json for this project
   bezel build [options]    Generate the outputs (default command)
 
 Reads design-tokens.json from the project root (the working directory).
+
+install-mcp options:
+      --skills                  Also run install-skills for the same client (skips the question)
+
+install-skills options:
+      --client <name>           claude-code | codex | cursor | all (asked when omitted)
+      --no-agents-md            Only write the skill folder; leave AGENTS.md alone
 
 init options:
       --dir <path>              Directory for all outputs
@@ -83,6 +94,8 @@ const OPTIONS = {
   "tokens-version": { type: "string" },
   stdout: { type: "boolean" },
   "no-gitignore": { type: "boolean" },
+  "no-agents-md": { type: "boolean" },
+  skills: { type: "boolean" },
   "no-contexts": { type: "boolean" },
   "no-fonts": { type: "boolean" },
   force: { type: "boolean", short: "f" },
@@ -159,6 +172,9 @@ async function runInit(values: Values): Promise<void> {
   if (!scripts["tokens"]) {
     steps.push('Add "tokens": "bezel build" to your package.json scripts.')
   }
+  if (!skillDirectories("all").some((dir) => existsSync(resolve(cwd, dir, "bezel")))) {
+    steps.push("Teach your AI coding agent about Bezel: npx bezel install-skills")
+  }
   steps.push(`Run the build, then import ${result.config.variablesOutput} in your entry file.`)
 
   process.stderr.write("\nNext:\n")
@@ -206,7 +222,12 @@ async function main(argv: string[]): Promise<void> {
   const command = positionals[0] ?? "build"
 
   if (command === "install-mcp") {
-    await installMcp(values.client)
+    await installMcp(values.client, { skills: values.skills })
+    return
+  }
+
+  if (command === "install-skills") {
+    await installSkillsCommand(values.client, { agentsMd: !values["no-agents-md"] })
     return
   }
 

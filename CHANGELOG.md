@@ -1,3 +1,10 @@
+## [0.8.1](https://github.com/bezel-labs/bezel-kit/compare/v0.8.0...v0.8.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* drop dev-server rule from the agent skill ([5f5fcf9](https://github.com/bezel-labs/bezel-kit/commit/5f5fcf9e3fdfcb3aa8e0e6a1a9536c4747d726ac))
+
 # [0.8.0](https://github.com/bezel-labs/bezel-kit/compare/v0.7.1...v0.8.0) (2026-10-29)
 
 

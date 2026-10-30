@@ -1,3 +1,10 @@
+# [0.9.0](https://github.com/bezel-labs/bezel-kit/compare/v0.8.1...v0.9.0) (2026-10-30)
+
+
+### Features
+
+* track the synced revision in bezel.json and teach the skill to push ([6d5ef9b](https://github.com/bezel-labs/bezel-kit/commit/6d5ef9b754aeb0e7aaa628eef2bc3aad3e6882a8))
+
 ## [0.8.1](https://github.com/bezel-labs/bezel-kit/compare/v0.8.0...v0.8.1) (2026-10-29)
 
 

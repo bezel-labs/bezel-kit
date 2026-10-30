@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs"
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -249,7 +250,7 @@ describe("initConfig — project link", () => {
     expect((await readConfig()).projectId).toBe(PROJECT)
   })
 
-  it("keeps the MCP-written revision when the project stays the same", async () => {
+  it("drops the legacy bezel.json revision (it lives in the lockfile now)", async () => {
     await writeFile(
       join(cwd, "bezel.json"),
       JSON.stringify({ projectId: PROJECT, version: "latest", revision: 12, variablesOutput: "mine.css" }),
@@ -257,22 +258,27 @@ describe("initConfig — project link", () => {
 
     await initConfig({ cwd, version: "1.4.0" })
 
-    expect(await readRawKeys()).toEqual(["projectId", "version", "revision", "variablesOutput"])
-    expect((await readConfig()).revision).toBe(12)
+    expect(await readRawKeys()).toEqual(["projectId", "version", "variablesOutput"])
   })
 
-  it("drops the revision when the project link changes", async () => {
-    await writeFile(
-      join(cwd, "bezel.json"),
-      JSON.stringify({ projectId: PROJECT, version: "latest", revision: 12, variablesOutput: "mine.css" }),
-    )
+  it("deletes a lockfile that belongs to the previous project when relinking", async () => {
+    await writeFile(join(cwd, "bezel.json"), JSON.stringify({ projectId: PROJECT, version: "latest" }))
+    await writeFile(join(cwd, "design-tokens-lock.json"), JSON.stringify({ projectId: PROJECT }))
 
-    await initConfig({ cwd, projectId: OTHER })
+    const result = await initConfig({ cwd, projectId: OTHER })
 
-    const config = await readConfig()
-    expect(config.projectId).toBe(OTHER)
-    expect(config).not.toHaveProperty("revision")
-    expect(config.variablesOutput).toBe("mine.css")
+    expect(result.removedLockfile).toBe(true)
+    expect(existsSync(join(cwd, "design-tokens-lock.json"))).toBe(false)
+  })
+
+  it("keeps the lockfile when the project stays the same", async () => {
+    await writeFile(join(cwd, "bezel.json"), JSON.stringify({ projectId: PROJECT, version: "latest" }))
+    await writeFile(join(cwd, "design-tokens-lock.json"), JSON.stringify({ projectId: PROJECT }))
+
+    const result = await initConfig({ cwd, version: "1.4.0" })
+
+    expect(result.removedLockfile).toBe(false)
+    expect(existsSync(join(cwd, "design-tokens-lock.json"))).toBe(true)
   })
 
   it("rewrites everything with force even when projectId is given", async () => {

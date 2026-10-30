@@ -8,6 +8,8 @@ import { generateVariablesCss } from "./node"
 import { installMcp } from "./install-mcp"
 import { installSkillsCommand, skillDirectories } from "./install-skills"
 import { initConfig, readPackageScripts } from "./init"
+import { changedPaths, diffTokens, syncFromStaging } from "./tokens-sync"
+import { LOCKFILE_NAME, SYNC_STAGING_PATH } from "./lockfile"
 import type { BezelOptions } from "./config"
 import { DEFAULT_CONFIG_FILE, DEFAULT_VARIABLES_OUTPUT } from "./defaults"
 
@@ -20,8 +22,15 @@ Usage:
                            Teach claude-code, codex, cursor, or all about Bezel
   bezel init [options]     Create a bezel.json for this project
   bezel build [options]    Generate the outputs (default command)
+  bezel diff [--json]      Local edits not in Bezel yet (vs ${LOCKFILE_NAME});
+                           --json prints them as JSON Patch operations for a push
+  bezel sync [--discard-local-edits]
+                           Apply the tokens the Bezel MCP returned (${SYNC_STAGING_PATH}):
+                           writes ${LOCKFILE_NAME} and design-tokens.json, then builds.
+                           Run after every sync and every push.
 
 Reads design-tokens.json from the project root (the working directory).
+Commit design-tokens.json and ${LOCKFILE_NAME} together; never edit the lockfile by hand.
 
 install-mcp options:
       --skills                  Also run install-skills for the same client (skips the question)
@@ -99,6 +108,8 @@ const OPTIONS = {
   "no-contexts": { type: "boolean" },
   "no-fonts": { type: "boolean" },
   force: { type: "boolean", short: "f" },
+  json: { type: "boolean" },
+  "discard-local-edits": { type: "boolean" },
   help: { type: "boolean", short: "h" },
 } as const
 
@@ -137,6 +148,9 @@ async function runInit(values: Values): Promise<void> {
     }
     if (result.config.version !== result.previousVersion) {
       process.stderr.write(`bezel: set version to ${result.config.version} in ${configName}\n`)
+    }
+    if (result.removedLockfile) {
+      process.stderr.write(`bezel: removed ${LOCKFILE_NAME} (it belonged to the previous project)\n`)
     }
     if (!result.hasTokensFile) {
       process.stderr.write(`\n${TOKENS_FILE_HINT}\n`)
@@ -207,6 +221,59 @@ async function runBuild(values: Values): Promise<void> {
   }
 }
 
+/** Exit code for a sync refused because it would drop local edits (distinct from errors). */
+const EXIT_UNPUSHED_EDITS = 2
+
+/** `bezel diff` — local edits relative to the lockfile. */
+async function runDiff(values: Values): Promise<void> {
+  const result = await diffTokens({ cwd: process.cwd() })
+  const json = values.json
+
+  if (result.ok === false) {
+    if (json) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
+    process.stderr.write(`bezel: ${result.message}\n`)
+    process.exitCode = 1
+    return
+  }
+
+  if (json) {
+    const { projectId, version, baseRevision, operations } = result
+    process.stdout.write(`${JSON.stringify({ ok: true, projectId, version, baseRevision, operations })}\n`)
+    return
+  }
+
+  const edits = result.operations.filter((operation) => operation.op !== "test")
+  if (edits.length === 0) {
+    process.stdout.write(`In sync with Bezel revision ${result.baseRevision} (${result.version}). No local edits.\n`)
+    return
+  }
+  const paths = changedPaths(result.operations)
+  process.stdout.write(
+    `${edits.length} local ${edits.length === 1 ? "edit" : "edits"} not in Bezel yet (based on revision ${result.baseRevision}):\n`,
+  )
+  for (const path of paths.slice(0, 50)) process.stdout.write(`  ${path}\n`)
+  if (paths.length > 50) process.stdout.write(`  ...and ${paths.length - 50} more\n`)
+  process.stdout.write('Push them with the Bezel MCP ("push my token changes to Bezel").\n')
+}
+
+/** `bezel sync` — apply the staged lockfile, then build. */
+async function runSync(values: Values): Promise<void> {
+  const result = await syncFromStaging({ cwd: process.cwd(), discardLocalEdits: values["discard-local-edits"] })
+  if (result.ok === false) {
+    process.stderr.write(`bezel: ${result.message}\n`)
+    process.exitCode =
+      result.reason === "unpushed-edits" || result.reason === "unknown-local-edits" ? EXIT_UNPUSHED_EDITS : 1
+    return
+  }
+  process.stderr.write(
+    `bezel: synced revision ${result.revision} (${result.version}) of project ${result.projectId} into ${LOCKFILE_NAME}${result.tokensChanged ? " and design-tokens.json" : "; design-tokens.json already matched"}\n`,
+  )
+  if (result.discardedEdits > 0) {
+    process.stderr.write(`bezel: discarded ${result.discardedEdits} local ${result.discardedEdits === 1 ? "edit" : "edits"}\n`)
+  }
+  await runBuild(values)
+}
+
 async function main(argv: string[]): Promise<void> {
   const { values, positionals } = parseArgs({
     args: argv,
@@ -235,6 +302,17 @@ async function main(argv: string[]): Promise<void> {
     await runInit(values)
     return
   }
+
+  if (command === "diff") {
+    await runDiff(values)
+    return
+  }
+
+  if (command === "sync") {
+    await runSync(values)
+    return
+  }
+
 
   if (command !== "build") {
     process.stderr.write(`bezel: unknown command "${command}".\n\n${USAGE}`)

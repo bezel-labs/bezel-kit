@@ -10,9 +10,8 @@
  *
  * Non-destructive: an existing `bezel.json` is never overwritten without `force`.
  * The one exception is the project link: passing `projectId` and/or `version` to an
- * existing config updates just those keys in place, leaving everything else as-is. The
- * MCP-written `revision` rides along with the link: kept while the project stays the
- * same, dropped when `projectId` changes (a revision belongs to one project).
+ * existing config updates just those keys in place, leaving everything else as-is. Relinking
+ * to a different project deletes a `design-tokens-lock.json` that belongs to the old one.
  */
 import { existsSync } from "node:fs"
 import { readFile, writeFile } from "node:fs/promises"
@@ -27,6 +26,7 @@ import {
   FONTS_FILE,
   VARIABLES_FILE,
 } from "./defaults"
+import { removeLockfileForOtherProject } from "./tokens-sync"
 
 /** Options for {@link initConfig}. All optional — the zero-arg call is the happy path. */
 export interface InitOptions {
@@ -87,6 +87,8 @@ export interface InitResult {
   previousProjectId?: string
   /** The `version` that was in the file before an update, if any. */
   previousVersion?: string
+  /** True when a `design-tokens-lock.json` for a different project was deleted. */
+  removedLockfile?: boolean
 }
 
 /** Whether `value` is a UUID — the shape of a Bezel project id. */
@@ -166,26 +168,21 @@ export async function initConfig(options: InitOptions = {}): Promise<InitResult>
     }
 
     // Link-only update: replace just the link keys, keep every other key in place.
-    const existing = JSON.parse(await readFile(configPath, "utf8")) as BezelOptions
-    const {
-      projectId: previousProjectId,
-      version: previousVersion,
-      revision: previousRevision,
-      ...rest
-    } = existing
+    const existing = JSON.parse(await readFile(configPath, "utf8")) as BezelOptions & { revision?: unknown }
+    // `revision` lived in bezel.json in 0.9.0; it now belongs to design-tokens-lock.json.
+    delete existing.revision
+    const { projectId: previousProjectId, version: previousVersion, ...rest } = existing
     const merged: BezelOptions = {}
     const projectId = options.projectId ?? previousProjectId
     if (projectId !== undefined) merged.projectId = projectId
     merged.version = options.version ?? previousVersion ?? "latest"
-    // The synced revision only means something for the project it came from.
-    if (previousRevision !== undefined && projectId === previousProjectId) {
-      merged.revision = previousRevision
-    }
     Object.assign(merged, rest)
 
     await writeFile(configPath, `${JSON.stringify(merged, null, 2)}\n`, "utf8")
+    const removedLockfile = projectId !== undefined ? await removeLockfileForOtherProject(cwd, projectId) : false
 
     return {
+      removedLockfile,
       configPath,
       config: merged,
       written: true,
@@ -198,8 +195,10 @@ export async function initConfig(options: InitOptions = {}): Promise<InitResult>
   }
 
   await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8")
+  const removedLockfile =
+    config.projectId !== undefined ? await removeLockfileForOtherProject(cwd, config.projectId) : false
 
-  return { configPath, config, written: true, updated: false, hasTokensFile, isTypeScript }
+  return { configPath, config, written: true, updated: false, removedLockfile, hasTokensFile, isTypeScript }
 }
 
 /**

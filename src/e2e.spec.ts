@@ -68,14 +68,13 @@ describe("generateVariablesCss (e2e)", () => {
     expect(css).toBe(await generateVariablesCss({ cwd: fixturesDir, write: false }))
   })
 
-  it("ignores the MCP-only projectId/version/revision keys", async () => {
+  it("ignores the MCP-only projectId/version keys", async () => {
     const plain = await generateVariablesCss({ cwd: fixturesDir, write: false })
     const linked = await generateVariablesCss({
       cwd: fixturesDir,
       write: false,
       projectId: "0f7a4c2e-1b3d-4e5f-8a9b-0c1d2e3f4a5b",
       version: "1.2.0",
-      revision: 7,
     })
 
     expect(linked).toBe(plain)

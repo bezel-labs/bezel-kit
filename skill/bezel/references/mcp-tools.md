@@ -7,8 +7,8 @@ Remote server at `https://mcp.bezel.new/mcp` (Streamable HTTP, OAuth). The serve
 | Tool / prompt | Use |
 |---|---|
 | `setup-project` (tool and prompt) | Resumable setup: install bezel-kit, link a project, write `bezel.json`, fetch tokens, build, wire the CSS import, optional Crystal live preview. |
-| `sync-project` (prompt) | Refresh `design-tokens.json` from the linked project and version, record the revision, then rebuild. Offers to push local edits first instead of overwriting them. |
-| `push-project` (prompt) | Preview, confirm with the user, and push the repo's `design-tokens.json` to the linked project as its working tokens; records the new revision. |
+| `sync-project` (prompt) | Refresh `design-tokens.json` and `design-tokens-lock.json` from the linked project and version through `bezel sync`. Offers to push local edits first instead of overwriting them. |
+| `push-project` (prompt) | Diff, preview, confirm with the user, and push the repo's token edits to the linked project, then sync so `design-tokens-lock.json` moves to the new revision. |
 | `safe-usage-guide` (prompt) | Context-budget rules: manifest first, targeted queries, cite token paths. |
 | `manifest-first-workflow`, `context-resolution` (prompts) | Recommended reading order and how contexts resolve. |
 | `get-agent-guide` (tool) | Returns this skill's text when the repo has no local copy. |
@@ -24,9 +24,9 @@ Remote server at `https://mcp.bezel.new/mcp` (Streamable HTTP, OAuth). The serve
 
 | Tool | Parameters | Returns |
 |---|---|---|
-| `get-design-tokens-file` | `projectId`, `version?` | The exact `design-tokens.json` content to write to disk, plus project name, version, and `revision` (store it in `bezel.json`). Unknown version -> list of available versions. |
-| `preview-design-tokens-push` | `projectId`, `content`, `baseRevision?`, `trackedVersion?` | Diff of the file against the project's working tokens, validation and plan-limit problems, the themes the file would add (`addedContexts`), a `stale` flag when Bezel changed since the last sync, and a `confirmationPrompt` to show the user verbatim. Saves nothing. |
-| `push-design-tokens-file` | `projectId`, `content`, `expectedRevision` | Saves the file as the project's working tokens, only when the project is still at `expectedRevision` (else `conflict`). Call only after the user confirms the preview. Returns the new `revision`. |
+| `get-design-tokens-file` | `projectId`, `version?` | `lockfileContent`: the full `design-tokens-lock.json` text (tokens + `revision`). Write it to `.bezel/sync.json` and run `npx bezel sync`. Unknown version -> list of available versions. |
+| `preview-design-tokens-push` | `projectId`, `operations`, `baseRevision?`, `trackedVersion?` | Checks the edits from `npx bezel diff --json` against the working tokens: plan-limit problems, `conflict` (tokens edited here and in Bezel), themes the edits add (`addedContexts`), `behind` when Bezel moved on (those changes are kept), and a `confirmationPrompt` to show verbatim. Saves nothing. |
+| `push-design-tokens` | `projectId`, `operations`, `baseRevision?` | Saves the previewed edits as a new revision. Call only after the user confirms the preview. Returns the new `revision`. Sync right after it so the lockfile moves to that revision. |
 
 ## Reading tokens
 

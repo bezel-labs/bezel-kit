@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "@inquirer/select": "^5.2.6",
+    "fast-json-patch": "^3.1.1",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

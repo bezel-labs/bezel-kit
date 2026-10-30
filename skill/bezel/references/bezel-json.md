@@ -6,7 +6,6 @@
 |---|---|---|---|
 | `projectId` | none | MCP | UUID of the Bezel project this repo tracks. Set with `npx bezel init --project <uuid>`. |
 | `version` | `"latest"` | MCP | Which tokens snapshot to fetch: `"latest"` or a published semver such as `"1.4.0"`. Set with `--tokens-version`. |
-| `revision` | none | MCP | Project revision the file was last synced from or pushed to. Written by the MCP after a sync or push, never by hand; lets a push preview warn when Bezel changed since. `bezel init --project` drops it when the project changes. |
 | `variablesOutput` | `"src/bezel/variables.css"` | build | Generated CSS file. Import this from the app entry. |
 | `contextsOutput` | none | build | When set, writes a TypeScript module exporting `CONTEXTS` (the context names). |
 | `fontsOutput` | none | build | When set, writes a TypeScript module exporting `FONTS` (web fonts derived from the tokens). |
@@ -20,7 +19,11 @@
 | `gitignorePath` | `".gitignore"` | build | Which `.gitignore` to manage. |
 | `cwd` | process cwd | build | Base directory paths resolve against. |
 
-`projectId`, `version`, and `revision` are ignored by `bezel build`; everything else is ignored by the MCP.
+`projectId` and `version` are ignored by `bezel build`; everything else is ignored by the MCP. The synced revision lives in `design-tokens-lock.json`, not here.
+
+## design-tokens-lock.json
+
+Committed next to `design-tokens.json`, like `package-lock.json` next to `package.json`. It records the tokens and project revision this repo last synced or pushed: `lockfileVersion`, `projectId`, `version`, `revision`, and `tokens`. `bezel diff` compares `design-tokens.json` against it to find local edits. Only `bezel sync` writes it, after every sync and every push; never edit it. `bezel init --project` deletes a lockfile that belongs to a different project.
 
 ## CLI
 
@@ -29,6 +32,10 @@ bezel init [--project <uuid>] [--tokens-version <v>] [--dir <path>] ...   create
 bezel build [--stdout] [--no-gitignore] ...                                generate the outputs (default command)
 bezel install-mcp [--client <name>]                                        connect an AI coding tool to the Bezel MCP
 bezel install-skills [--client <name>] [--no-agents-md]                    install this skill into the repo
+bezel diff [--json]                                                        local edits vs design-tokens-lock.json (--json: JSON Patch operations for a push)
+bezel sync [--discard-local-edits]                                         apply .bezel/sync.json: write the lockfile and design-tokens.json, then build
 ```
+
+`bezel sync` exits with code 2 when `design-tokens.json` has edits Bezel does not have; other problems exit with 1.
 
 `bezel init` on an existing `bezel.json` with `--project` or `--tokens-version` updates only those keys. Any other re-run leaves the file alone unless `--force` is passed, which agents must not do.

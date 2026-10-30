@@ -7,12 +7,13 @@
  * browser-safe; for the pure transform use `bezel`.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises"
-import { dirname, relative, sep } from "node:path"
+import { dirname, relative, resolve, sep } from "node:path"
 import { resolveOptions, type BezelOptions, type ResolvedOptions } from "./config"
 import { emitCss } from "./emit"
 import { formatContextsModule, getContexts } from "./contexts"
 import { formatFontsModule, getFonts } from "./fonts"
 import { mergeGitignore } from "./gitignore"
+import { SYNC_STAGING_PATH } from "./lockfile"
 import type { DtcgNode } from "./types"
 
 export * from "./index"
@@ -21,6 +22,18 @@ export type { BezelOptions, ResolvedOptions } from "./config"
 export { initConfig, readPackageScripts } from "./init"
 export type { InitOptions, InitResult } from "./init"
 export { DEFAULT_CONFIG_FILE, DEFAULT_OUTPUT_DIR, FALLBACK_OUTPUT_DIR } from "./defaults"
+export {
+  diffTokens,
+  syncFromStaging,
+  removeLockfileForOtherProject,
+  changedPaths,
+} from "./tokens-sync"
+export type {
+  DiffTokensResult,
+  SyncFromStagingResult,
+  SyncProblem,
+  SyncProblemReason,
+} from "./tokens-sync"
 
 /**
  * Generate a scoped `variables.css` from a W3C DTCG tokens file.
@@ -99,6 +112,8 @@ async function updateGitignore(resolved: ResolvedOptions): Promise<void> {
     resolved.variablesOutputPath,
     resolved.contextsOutput,
     resolved.fontsOutput,
+    // The MCP's sync payload is a temporary hand-off file; the lockfile itself is committed.
+    resolve(dirname(resolved.inputPath), SYNC_STAGING_PATH),
   ].filter((p): p is string => p !== null)
 
   const entries: string[] = []

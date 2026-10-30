@@ -18,6 +18,18 @@ export { resolveCssOptions } from "./options"
 export { getContexts, formatContextsModule, DEFAULT_CONTEXT_NAME } from "./contexts"
 export { getFonts, formatFontsModule } from "./fonts"
 export type { FontDef } from "./fonts"
+export {
+  LOCKFILE_NAME,
+  LOCKFILE_VERSION,
+  SYNC_STAGING_PATH,
+  buildLockfile,
+  parseLockfile,
+  serializeLockfile,
+  serializeTokensFile,
+} from "./lockfile"
+export type { TokensLockfile, ParseLockfileResult, LockfileProblem } from "./lockfile"
+export { isOperationApplied, isPatchApplied, jsonEqual, unappliedOperations } from "./patch-applied"
+export type { JsonPatchOperation, PatchOperationLike } from "./patch-applied"
 export { AGENT_SKILL } from "./agent-skill"
 export type { AgentSkill } from "./agent-skill"
 

@@ -1,3 +1,10 @@
+# [0.10.0](https://github.com/bezel-labs/bezel-kit/compare/v0.9.0...v0.10.0) (2026-10-30)
+
+
+### Features
+
+* add design-tokens-lock.json and patch-based sync/push commands ([8f824f8](https://github.com/bezel-labs/bezel-kit/commit/8f824f80dda0f9021d238ebb6fdf10c999fa222b))
+
 # [0.9.0](https://github.com/bezel-labs/bezel-kit/compare/v0.8.1...v0.9.0) (2026-10-30)
 
 

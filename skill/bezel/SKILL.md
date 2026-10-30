@@ -1,6 +1,6 @@
 ---
 name: bezel
-description: Use when the repo has bezel.json or design-tokens.json and the task touches design tokens, theme colors, spacing, typography, radii, CSS variables, dark mode, or files under the Bezel output folder (src/bezel by default). Edit design-tokens.json, never the generated variables.css / contexts.ts / fonts.ts, then run the tokens build. Also covers pulling the latest tokens from the Bezel app, pushing local token edits back to Bezel after a preview and confirmation, and using the Bezel MCP tools.
+description: Use when the repo has bezel.json or design-tokens.json and the task touches design tokens, theme colors, spacing, typography, radii, CSS variables, dark mode, or files under the Bezel output folder (src/bezel by default). Edit design-tokens.json, never the generated variables.css / contexts.ts / fonts.ts, then run the tokens build. Also covers pulling the latest tokens from the Bezel app, pushing local token edits back to Bezel when the user asks, and using the Bezel MCP tools.
 ---
 
 # Bezel in this repository
@@ -16,7 +16,7 @@ Bezel app (cloud, source of truth)
      contexts.ts, fonts.ts       optional generated TypeScript modules
 ```
 
-The Bezel app stays the source of truth. Local edits to `design-tokens.json` reach Bezel only when they are pushed through the Bezel MCP, after a preview and the user's explicit yes (see "Pushing changes back to Bezel"); until then the next sync replaces them.
+The Bezel app stays the source of truth. Local edits to `design-tokens.json` reach Bezel only when the user asks to push them through the Bezel MCP (see "Pushing changes back to Bezel").
 
 ## Hard rules
 
@@ -25,7 +25,7 @@ The Bezel app stays the source of truth. Local edits to `design-tokens.json` rea
 3. After any change to `design-tokens.json` or `bezel.json`, run the tokens build: `npm run tokens` when that script exists, otherwise `npx bezel build` (use the repo's package manager runner). Confirm the outputs were rewritten before finishing.
 4. Only tokens with an `exportName` become CSS variables unless `bezel.json` sets `"includeAll": true`. Adding a token without an `exportName` produces no variable.
 5. Never pass `--force` to `bezel init`; it discards the existing `bezel.json`. `--project` and `--tokens-version` update their own keys without it.
-6. Local edits to `design-tokens.json` are not in Bezel until they are pushed. `npx bezel diff` lists them. Never sync over them silently: offer to push them first. Pushing means `npx bezel diff --json`, `preview-design-tokens-push` with its operations, showing the `confirmationPrompt` word for word, `push-design-tokens` only after the user says yes, then a sync. Never push without that confirmation, and never push from a "sync" or "pull" request.
+6. Local edits to `design-tokens.json` are not in Bezel until they are pushed. `npx bezel diff` lists them. Never sync over them silently: offer to push them first. Pushing means `npx bezel diff --json`, then `push-design-tokens` with its operations, then a sync. Push only when the user asks to push, never from a "sync" or "pull" request. When Bezel changed since the last sync, the push returns `needs-confirmation`: show its `confirmationPrompt` word for word and pass `confirmed: true` only after the user says yes.
 7. Never write or edit `design-tokens-lock.json`, and never write a synced `design-tokens.json` from MCP output yourself. Only `bezel sync` writes them, after every sync and every push, so the two files always agree. Commit both files together.
 
 ## The tokens file
@@ -87,13 +87,12 @@ Needs the Bezel MCP. A push sends only your edits, as JSON Patch operations, the
 
 1. Run `npx bezel diff --json`. `"ok": false` prints what to do (every lockfile problem is fixed by a sync). `"operations": []` means nothing to push.
 2. If `bezel.json` `version` is a semver, tell the user the push updates the working project, not that pinned release.
-3. Call `preview-design-tokens-push` with `projectId`, the printed `operations` and `baseRevision` unchanged, and `version` as `trackedVersion`. It saves nothing.
-4. `invalid` or `blocked`: report and stop (`blocked` is a plan limit). `conflict`: the listed tokens changed in Bezel too; follow `nextStep`. `no-changes` with `alreadyApplied`: an earlier push saved these edits but the sync after it did not run; sync now. Themes the edits use that the project lacks are added by the push (`addedContexts`).
-5. `ready`: show `confirmationPrompt` to the user word for word and wait. Do not push on silence, a question, or a different request.
-6. After an explicit yes, call `push-design-tokens` with the same `projectId`, `operations`, and `baseRevision`.
-7. A push is not finished until the repo is synced. Sync as in the previous section, steps 2 and 3: `get-design-tokens-file`, write `lockfileContent` to `.bezel/sync.json`, run `npx bezel sync`. Your edits are already in Bezel, so the sync keeps them, pulls in anything others changed, and moves the lockfile to the new revision. Then tell the user to commit `design-tokens.json` and `design-tokens-lock.json` together.
+3. Call `push-design-tokens` with `projectId`, the printed `operations` and `baseRevision` unchanged, and `version` as `trackedVersion`. If Bezel is still at `baseRevision`, it saves straight away; the user's request to push is the go-ahead.
+4. `needs-confirmation`: Bezel changed since the last sync, so nothing was saved. Show `confirmationPrompt` to the user word for word and wait. Only after an explicit yes, call `push-design-tokens` again with the same arguments and `confirmed: true`. Silence, a question, or a different request means no push.
+5. `invalid` or `blocked`: report and stop (`blocked` is a plan limit). `conflict`: the listed tokens changed in Bezel too; follow `nextStep`. `no-changes` with `alreadyApplied`: an earlier push saved these edits but the sync after it did not run; sync now. Themes the edits use that the project lacks are added by the push (`addedContexts`).
+6. A push is not finished until the repo is synced. Sync as in the previous section, steps 2 and 3: `get-design-tokens-file`, write `lockfileContent` to `.bezel/sync.json`, run `npx bezel sync`. Your edits are already in Bezel, so the sync keeps them, pulls in anything others changed, and moves the lockfile to the new revision. Then tell the user to commit `design-tokens.json` and `design-tokens-lock.json` together.
 
-The `push-project` prompt walks through this.
+`preview-design-tokens-push` takes the same arguments and shows what a push would change without saving, for when the user asks first. The `push-project` prompt walks through this.
 
 ## With the Bezel MCP connected
 

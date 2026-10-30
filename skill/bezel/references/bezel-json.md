@@ -6,6 +6,7 @@
 |---|---|---|---|
 | `projectId` | none | MCP | UUID of the Bezel project this repo tracks. Set with `npx bezel init --project <uuid>`. |
 | `version` | `"latest"` | MCP | Which tokens snapshot to fetch: `"latest"` or a published semver such as `"1.4.0"`. Set with `--tokens-version`. |
+| `revision` | none | MCP | Project revision the file was last synced from or pushed to. Written by the MCP after a sync or push, never by hand; lets a push preview warn when Bezel changed since. `bezel init --project` drops it when the project changes. |
 | `variablesOutput` | `"src/bezel/variables.css"` | build | Generated CSS file. Import this from the app entry. |
 | `contextsOutput` | none | build | When set, writes a TypeScript module exporting `CONTEXTS` (the context names). |
 | `fontsOutput` | none | build | When set, writes a TypeScript module exporting `FONTS` (web fonts derived from the tokens). |
@@ -19,7 +20,7 @@
 | `gitignorePath` | `".gitignore"` | build | Which `.gitignore` to manage. |
 | `cwd` | process cwd | build | Base directory paths resolve against. |
 
-`projectId` and `version` are ignored by `bezel build`; everything else is ignored by the MCP.
+`projectId`, `version`, and `revision` are ignored by `bezel build`; everything else is ignored by the MCP.
 
 ## CLI
 

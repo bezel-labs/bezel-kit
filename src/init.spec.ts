@@ -249,6 +249,32 @@ describe("initConfig — project link", () => {
     expect((await readConfig()).projectId).toBe(PROJECT)
   })
 
+  it("keeps the MCP-written revision when the project stays the same", async () => {
+    await writeFile(
+      join(cwd, "bezel.json"),
+      JSON.stringify({ projectId: PROJECT, version: "latest", revision: 12, variablesOutput: "mine.css" }),
+    )
+
+    await initConfig({ cwd, version: "1.4.0" })
+
+    expect(await readRawKeys()).toEqual(["projectId", "version", "revision", "variablesOutput"])
+    expect((await readConfig()).revision).toBe(12)
+  })
+
+  it("drops the revision when the project link changes", async () => {
+    await writeFile(
+      join(cwd, "bezel.json"),
+      JSON.stringify({ projectId: PROJECT, version: "latest", revision: 12, variablesOutput: "mine.css" }),
+    )
+
+    await initConfig({ cwd, projectId: OTHER })
+
+    const config = await readConfig()
+    expect(config.projectId).toBe(OTHER)
+    expect(config).not.toHaveProperty("revision")
+    expect(config.variablesOutput).toBe("mine.css")
+  })
+
   it("rewrites everything with force even when projectId is given", async () => {
     await writeFile(join(cwd, "bezel.json"), '{"variablesOutput":"mine.css","colorFormat":"hex"}\n')
 

@@ -10,7 +10,9 @@
  *
  * Non-destructive: an existing `bezel.json` is never overwritten without `force`.
  * The one exception is the project link: passing `projectId` and/or `version` to an
- * existing config updates just those keys in place, leaving everything else as-is.
+ * existing config updates just those keys in place, leaving everything else as-is. The
+ * MCP-written `revision` rides along with the link: kept while the project stays the
+ * same, dropped when `projectId` changes (a revision belongs to one project).
  */
 import { existsSync } from "node:fs"
 import { readFile, writeFile } from "node:fs/promises"
@@ -163,13 +165,22 @@ export async function initConfig(options: InitOptions = {}): Promise<InitResult>
       return { configPath, config, written: false, updated: false, hasTokensFile, isTypeScript }
     }
 
-    // Link-only update: replace just the two link keys, keep every other key in place.
+    // Link-only update: replace just the link keys, keep every other key in place.
     const existing = JSON.parse(await readFile(configPath, "utf8")) as BezelOptions
-    const { projectId: previousProjectId, version: previousVersion, ...rest } = existing
+    const {
+      projectId: previousProjectId,
+      version: previousVersion,
+      revision: previousRevision,
+      ...rest
+    } = existing
     const merged: BezelOptions = {}
     const projectId = options.projectId ?? previousProjectId
     if (projectId !== undefined) merged.projectId = projectId
     merged.version = options.version ?? previousVersion ?? "latest"
+    // The synced revision only means something for the project it came from.
+    if (previousRevision !== undefined && projectId === previousProjectId) {
+      merged.revision = previousRevision
+    }
     Object.assign(merged, rest)
 
     await writeFile(configPath, `${JSON.stringify(merged, null, 2)}\n`, "utf8")

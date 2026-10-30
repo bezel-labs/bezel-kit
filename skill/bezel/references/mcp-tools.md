@@ -7,7 +7,8 @@ Remote server at `https://mcp.bezel.new/mcp` (Streamable HTTP, OAuth). The serve
 | Tool / prompt | Use |
 |---|---|
 | `setup-project` (tool and prompt) | Resumable setup: install bezel-kit, link a project, write `bezel.json`, fetch tokens, build, wire the CSS import, optional Crystal live preview. |
-| `sync-project` (prompt) | Refresh `design-tokens.json` from the linked project and version, then rebuild. |
+| `sync-project` (prompt) | Refresh `design-tokens.json` from the linked project and version, record the revision, then rebuild. Offers to push local edits first instead of overwriting them. |
+| `push-project` (prompt) | Preview, confirm with the user, and push the repo's `design-tokens.json` to the linked project as its working tokens; records the new revision. |
 | `safe-usage-guide` (prompt) | Context-budget rules: manifest first, targeted queries, cite token paths. |
 | `manifest-first-workflow`, `context-resolution` (prompts) | Recommended reading order and how contexts resolve. |
 | `get-agent-guide` (tool) | Returns this skill's text when the repo has no local copy. |
@@ -23,7 +24,9 @@ Remote server at `https://mcp.bezel.new/mcp` (Streamable HTTP, OAuth). The serve
 
 | Tool | Parameters | Returns |
 |---|---|---|
-| `get-design-tokens-file` | `projectId`, `version?` | The exact `design-tokens.json` content to write to disk, plus project name and version. Unknown version -> list of available versions. |
+| `get-design-tokens-file` | `projectId`, `version?` | The exact `design-tokens.json` content to write to disk, plus project name, version, and `revision` (store it in `bezel.json`). Unknown version -> list of available versions. |
+| `preview-design-tokens-push` | `projectId`, `content`, `baseRevision?`, `trackedVersion?` | Diff of the file against the project's working tokens, validation and plan-limit problems, the themes the file would add (`addedContexts`), a `stale` flag when Bezel changed since the last sync, and a `confirmationPrompt` to show the user verbatim. Saves nothing. |
+| `push-design-tokens-file` | `projectId`, `content`, `expectedRevision` | Saves the file as the project's working tokens, only when the project is still at `expectedRevision` (else `conflict`). Call only after the user confirms the preview. Returns the new `revision`. |
 
 ## Reading tokens
 

@@ -28,6 +28,12 @@ export interface BezelOptions extends CssOptions {
    * published semver like `"1.4.0"`. Missing means `"latest"`. Ignored by `build`.
    */
   version?: string
+  /**
+   * The project revision `design-tokens.json` was last synced from or pushed to. Written by
+   * the Bezel MCP (never by hand) so a push preview can tell local edits from changes made in
+   * Bezel since. Ignored by `build`.
+   */
+  revision?: number
   /** Path to write the generated CSS. Default: `"src/bezel/variables.css"` (resolved from `cwd`). */
   variablesOutput?: string
   /** Base directory paths are resolved against. Default: `process.cwd()`. */

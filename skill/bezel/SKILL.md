@@ -1,6 +1,6 @@
 ---
 name: bezel
-description: Use when the repo has bezel.json or design-tokens.json and the task touches design tokens, theme colors, spacing, typography, radii, CSS variables, dark mode, or files under the Bezel output folder (src/bezel by default). Edit design-tokens.json, never the generated variables.css / contexts.ts / fonts.ts, then run the tokens build. Also covers pulling the latest tokens from the Bezel app and using the Bezel MCP tools.
+description: Use when the repo has bezel.json or design-tokens.json and the task touches design tokens, theme colors, spacing, typography, radii, CSS variables, dark mode, or files under the Bezel output folder (src/bezel by default). Edit design-tokens.json, never the generated variables.css / contexts.ts / fonts.ts, then run the tokens build. Also covers pulling the latest tokens from the Bezel app, pushing local token edits back to Bezel after a preview and confirmation, and using the Bezel MCP tools.
 ---
 
 # Bezel in this repository
@@ -15,7 +15,7 @@ Bezel app (cloud, source of truth)
      contexts.ts, fonts.ts       optional generated TypeScript modules
 ```
 
-Nothing in this repo pushes back to Bezel. A change that must survive the next sync belongs in the Bezel app.
+The Bezel app stays the source of truth. Local edits to `design-tokens.json` reach Bezel only when they are pushed through the Bezel MCP, after a preview and the user's explicit yes (see "Pushing changes back to Bezel"); until then the next sync replaces them.
 
 ## Hard rules
 
@@ -24,7 +24,7 @@ Nothing in this repo pushes back to Bezel. A change that must survive the next s
 3. After any change to `design-tokens.json` or `bezel.json`, run the tokens build: `npm run tokens` when that script exists, otherwise `npx bezel build` (use the repo's package manager runner). Confirm the outputs were rewritten before finishing.
 4. Only tokens with an `exportName` become CSS variables unless `bezel.json` sets `"includeAll": true`. Adding a token without an `exportName` produces no variable.
 5. Never pass `--force` to `bezel init`; it discards the existing `bezel.json`. `--project` and `--tokens-version` update their own keys without it.
-6. Local edits to `design-tokens.json` are overwritten by the next sync from Bezel. Tell the user when a change should be made in the Bezel app instead, and never silently sync over their local edits.
+6. Local edits to `design-tokens.json` are not in Bezel until they are pushed, and a sync from Bezel overwrites them. Never silently sync over local edits: say so and offer to push them first. Pushing means `preview-design-tokens-push`, showing its `confirmationPrompt` word for word, then `push-design-tokens-file` only after the user says yes. Never push without that confirmation, and never push from a "sync" or "pull" request.
 
 ## The tokens file
 
@@ -59,18 +59,32 @@ Nothing in this repo pushes back to Bezel. A change that must survive the next s
 | New theme or brand context | Add the context to `bezel.json` `contexts` (name -> selector) and add that key to the tokens that differ | Rebuild |
 | Change where files are generated | Edit `variablesOutput` / `contextsOutput` / `fontsOutput` in `bezel.json`; update the CSS import | Rebuild, delete the old outputs |
 | "Pull the latest tokens" / "sync from Bezel" | See the next section | Rebuild |
+| "Push my changes to Bezel" / save local token edits back | Nothing locally; follow "Pushing changes back to Bezel" | Write the returned `revision` to `bezel.json`; rebuild only if the file was re-synced |
 
 Find the token for an existing variable by searching `design-tokens.json` for its name inside an `exportName` array.
 
 ## Pulling the latest tokens from Bezel
 
-`bezel.json` `projectId` and `version` (`"latest"` or a published semver) say which Bezel project and snapshot this repo tracks.
+`bezel.json` `projectId` and `version` (`"latest"` or a published semver) say which Bezel project and snapshot this repo tracks. `revision` records the project revision the file was last synced from or pushed to.
 
-With the Bezel MCP connected: call `get-design-tokens-file` with that `projectId` and `version`, write the returned `content` string to `design-tokens.json` verbatim (no reformatting), then rebuild. The `sync-project` prompt walks through this, including linking a project when `projectId` is missing. Never pick a project or version yourself; ask when it is ambiguous.
+With the Bezel MCP connected: call `get-design-tokens-file` with that `projectId` and `version`, write the returned `content` string to `design-tokens.json` verbatim (no reformatting), set `"revision"` in `bezel.json` to the returned `revision`, then rebuild. The `sync-project` prompt walks through this, including linking a project when `projectId` is missing. Never pick a project or version yourself; ask when it is ambiguous.
 
 Without the MCP: ask the user to download `design-tokens.json` from the project in the Bezel app and replace the file at the repo root, then rebuild.
 
-Warn before overwriting a `design-tokens.json` that has local edits.
+Before overwriting a `design-tokens.json` that has local edits, stop and offer to push them first (next section) or confirm they should be discarded.
+
+## Pushing changes back to Bezel
+
+Needs the Bezel MCP. Pushing saves this repo's `design-tokens.json` as the project's working tokens (`latest`), so the Bezel app stays the source of truth and everyone who syncs gets the change. Publishing a version still happens in the Bezel app.
+
+1. Read `projectId`, `version`, and `revision` from `bezel.json`. If `version` is a semver, tell the user the push updates the working project, not that pinned release.
+2. Call `preview-design-tokens-push` with the exact file text as `content`, `revision` as `baseRevision`, and `version` as `trackedVersion`. It saves nothing.
+3. `invalid` or `blocked`: report the errors and stop (`blocked` is a plan limit on groups, themes, or descriptions). `no-changes`: say the project already matches. Theme keys the file uses that the project does not have yet are added to the project by the push, within the plan's theme limit; the preview lists them as `addedContexts`.
+4. `ready`: show `confirmationPrompt` to the user word for word and wait. Do not push on silence, a question, or a different request.
+5. After an explicit yes, call `push-design-tokens-file` with the same `content` and `expectedRevision` = the preview's `currentRevision`. `conflict` means Bezel changed in between: go back to step 2.
+6. Write the returned `revision` to `bezel.json`. If the result says `normalized`, sync once (`get-design-tokens-file`, write verbatim, rebuild) so the local file matches Bezel byte for byte.
+
+The `push-project` prompt walks through this.
 
 ## With the Bezel MCP connected
 

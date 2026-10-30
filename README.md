@@ -75,13 +75,17 @@ the project link rather than the build:
 - `projectId` (optional) — the Bezel project this repo is linked to (a UUID).
 - `version` (recommended, default `latest`) — the tokens the Bezel MCP fetches: `latest`
   for the project's latest snapshot, or a published semver like `1.4.0`.
+- `revision` (written by the MCP) — the project revision `design-tokens.json` was last synced
+  from or pushed to. It lets a push preview tell local edits from changes made in Bezel since.
+  `bezel init --project` keeps it for the same project and drops it when the project changes.
 
-Both are read only by the Bezel MCP and ignored by `build`.
+All three are read only by the Bezel MCP and ignored by `build`.
 
 ```json
 {
   "projectId": "0f7a4c2e-1b3d-4e5f-8a9b-0c1d2e3f4a5b",
   "version": "latest",
+  "revision": 12,
   "variablesOutput": "src/bezel/variables.css"
 }
 ```

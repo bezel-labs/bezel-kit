@@ -1,3 +1,10 @@
+# [0.11.0](https://github.com/bezel-labs/bezel-kit/compare/v0.10.0...v0.11.0) (2026-10-30)
+
+
+### Features
+
+* push tokens without confirmation required when Bezel is unchanged ([7b8e31f](https://github.com/bezel-labs/bezel-kit/commit/7b8e31fafdc95f8f9d6527c96274feb213694d79))
+
 # [0.10.0](https://github.com/bezel-labs/bezel-kit/compare/v0.9.0...v0.10.0) (2026-10-30)
 
 

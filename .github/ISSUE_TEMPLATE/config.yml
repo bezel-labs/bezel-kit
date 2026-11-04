@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/bezel-labs/bezel-kit/discussions
+    about: Ask how to use Bezel Kit or discuss an idea.
+  - name: Security vulnerability
+    url: https://github.com/bezel-labs/bezel-kit/security/advisories/new
+    about: Report privately; please do not open a public issue.

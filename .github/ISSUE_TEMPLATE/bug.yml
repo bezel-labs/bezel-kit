@@ -1,0 +1,32 @@
+name: Bug report
+description: The compiler or CLI produces unexpected output, or crashes.
+labels: [bug]
+body:
+  - type: textarea
+    id: tokens
+    attributes:
+      label: Minimal tokens JSON
+      description: The smallest document that shows the problem.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: The CSS output or behavior you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: The generated CSS, error message, and command or API call you used.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version and Node version
+    validations:
+      required: true

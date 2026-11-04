@@ -53,11 +53,14 @@ export function flattenForContext(tokens: DtcgNode, context: string): Map<string
         (node[context] as DtcgNode | undefined) ??
         (node[ROOT_CONTEXT] as DtcgNode | undefined) ??
         (node[wrapperKeys[0]!] as DtcgNode)
+      const contexts: Record<string, TokenValue> = {}
+      for (const key of wrapperKeys) contexts[key] = (node[key] as DtcgNode).$value as TokenValue
       out.set(path, {
         path,
         value: chosen.$value as TokenValue,
         type,
         extensions: node.$extensions,
+        contexts,
       })
       return
     }

@@ -14,7 +14,7 @@ describe("generateVariablesCss (e2e)", () => {
 
     // :root has the full set, with references resolved to literal values.
     expect(css).toContain(":root {")
-    expect(css).toContain("--primary: oklch(0.8 0.18 151.7);") // resolved {base.color.green.500}
+    expect(css).toContain("--primary: oklch(0.8 0.18 151.7);") // resolved {base.color.green.500.$root}
     expect(css).toContain("--font-sans: \"Geist Variable\", sans-serif;")
 
     // 1-to-many exportName fan-out.

@@ -74,6 +74,33 @@ describe("resolveReferences", () => {
     expect(() => resolveReferences(map)).toThrow(/unresolved/)
   })
 
+  it("follows {path.$root} to the collapsed value and {path.<context>} to that context's value", () => {
+    const flat = flattenForContext(
+      {
+        base: { c: { dark: { $value: "darkVal" }, $root: { $value: "rootVal" }, $type: "color" } },
+        s: {
+          toRoot: { $root: { $value: "{base.c.$root}" }, $type: "color" },
+          toDark: { $root: { $value: "{base.c.dark}" }, $type: "color" },
+          chained: { $root: { $value: "{s.toRoot.$root}" }, $type: "color" },
+        },
+      },
+      "light",
+    )
+    resolveReferences(flat)
+    expect(flat.get("s.toRoot")?.value).toBe("rootVal")
+    expect(flat.get("s.toDark")?.value).toBe("darkVal")
+    expect(flat.get("chained")?.value).toBeUndefined()
+    expect(flat.get("s.chained")?.value).toBe("rootVal")
+  })
+
+  it("rejects an alias to a context the token does not define", () => {
+    const flat = flattenForContext(
+      { base: { c: { $root: { $value: "rootVal" }, $type: "color" } }, s: { x: { $root: { $value: "{base.c.dark}" } } } },
+      "$root",
+    )
+    expect(() => resolveReferences(flat)).toThrow(/unresolved token reference "\{base\.c\.dark\}"/)
+  })
+
   it("detects whole-value aliases only", () => {
     expect(aliasTarget("{a.b.c}")).toBe("a.b.c")
     expect(aliasTarget("plain")).toBeNull()
@@ -162,7 +189,7 @@ describe("includeAll", () => {
     semantic: {
       color: {
         primary: {
-          $root: { $value: "{base.color.blue}" },
+          $root: { $value: "{base.color.blue.$root}" },
           $type: "color",
           $extensions: ext("primary"),
         },
@@ -192,7 +219,7 @@ describe("includeAll", () => {
       semantic: {
         color: {
           primary: {
-            $root: { $value: "{base.color.blue}" },
+            $root: { $value: "{base.color.blue.$root}" },
             $type: "color",
             $extensions: ext("base-color-red"),
           },

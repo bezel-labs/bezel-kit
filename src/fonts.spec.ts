@@ -14,13 +14,13 @@ const tokens: DtcgNode = {
     typography: {
       body: {
         sm: {
-          "font-family": { $root: { $value: "{base.typography.font-family.sans}" }, $type: "fontFamily" },
+          "font-family": { $root: { $value: "{base.typography.font-family.sans.$root}" }, $type: "fontFamily" },
           "font-weight": { $root: { $value: 400 }, $type: "fontWeight" },
         },
       },
       heading: {
         h1: {
-          "font-family": { $root: { $value: "{base.typography.font-family.sans}" }, $type: "fontFamily" },
+          "font-family": { $root: { $value: "{base.typography.font-family.sans.$root}" }, $type: "fontFamily" },
           "font-weight": { $root: { $value: 600 }, $type: "fontWeight" },
         },
       },

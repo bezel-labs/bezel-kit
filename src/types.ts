@@ -50,4 +50,6 @@ export interface FlatToken {
   type?: string
   /** Vendor extensions carried through from the source token. */
   extensions?: Record<string, unknown>
+  /** Every context wrapper's raw value (`$root`, `dark`, ...), so `{path.<context>}` aliases can be followed. */
+  contexts?: Record<string, TokenValue>
 }

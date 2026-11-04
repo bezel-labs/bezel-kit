@@ -59,13 +59,13 @@
     "color": {
       "primary": {
         "default": {
-          "dark": { "$value": "{base.color.aqua.500}" },
-          "$root": { "$value": "{base.color.green.500}" },
+          "dark": { "$value": "{base.color.aqua.500.$root}" },
+          "$root": { "$value": "{base.color.green.500.$root}" },
           "$type": "color",
           "$extensions": { "com.bezel.app": { "exportName": ["primary"] } }
         },
         "foreground": {
-          "$root": { "$value": "{base.color.neutral.foreground}" },
+          "$root": { "$value": "{base.color.neutral.foreground.$root}" },
           "$type": "color",
           "$extensions": { "com.bezel.app": { "exportName": ["primary-foreground"] } }
         }

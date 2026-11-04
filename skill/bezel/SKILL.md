@@ -37,7 +37,7 @@ The Bezel app stays the source of truth. Local edits to `design-tokens.json` rea
   "color": {
     "primary": {
       "$type": "color",
-      "$root": { "$value": "{base.color.green.500}" },
+      "$root": { "$value": "{base.color.green.500.$root}" },
       "dark":  { "$value": { "colorSpace": "oklch", "components": [0.85, 0.16, 152] } },
       "$extensions": { "com.bezel.app": { "exportName": ["primary", "ring"] } }
     }
@@ -46,7 +46,7 @@ The Bezel app stays the source of truth. Local edits to `design-tokens.json` rea
 ```
 
 - Context keys (`$root`, `dark`, `light`, or whatever `bezel.json` `contexts` lists) sit inside the token. `$root` is the base; other contexts only need the values that differ.
-- `$value` is either a literal (DTCG color, dimension, font family, ...) or a reference like `{base.color.green.500}`. References are resolved to literal values in the generated CSS.
+- `$value` is either a literal (DTCG color, dimension, font family, ...) or a reference. A reference names a token's value: `{base.color.green.500.$root}` is the token's default value and `{base.color.green.500.dark}` one theme's value; it must end in `$root` or a theme name, never stop at the token (`{base.color.green.500}` is invalid, the spec treats that as a group). References are resolved to literal values in the generated CSS.
 - `$extensions["com.bezel.app"].exportName` is the list of CSS variable names the token emits. One token can emit several (`foreground`, `card-foreground`). An empty list means no variable.
 - Groups (`base`, `semantic`, `color`, ...) are plain nesting with no `$type`.
 

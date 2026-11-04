@@ -1,3 +1,10 @@
+# [0.12.0](https://github.com/bezel-labs/bezel-kit/compare/v0.11.0...v0.12.0) (2026-11-04)
+
+
+### Features
+
+* **resolve:** follow spec-form aliases ({path.$root} and {path.<context>}) ([#1](https://github.com/bezel-labs/bezel-kit/issues/1)) ([96b2733](https://github.com/bezel-labs/bezel-kit/commit/96b2733165d57e654d8ef46d7dd86d6ffcb1f776))
+
 # [0.11.0](https://github.com/bezel-labs/bezel-kit/compare/v0.10.0...v0.11.0) (2026-10-30)
 
 

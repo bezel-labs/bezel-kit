@@ -1,3 +1,10 @@
+# [0.13.0](https://github.com/bezel-labs/bezel-kit/compare/v0.12.0...v0.13.0) (2026-11-06)
+
+
+### Features
+
+* rename the default $extensions namespace to new.bezel.app ([7bd5523](https://github.com/bezel-labs/bezel-kit/commit/7bd552347d095bb19ac261236511cde456c93ef9))
+
 # [0.12.0](https://github.com/bezel-labs/bezel-kit/compare/v0.11.0...v0.12.0) (2026-11-04)
 
 

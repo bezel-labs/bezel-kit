@@ -12,7 +12,7 @@
 | `contexts` | `{ "$root": ":root", "dark": ".dark", "light": ".light" }` | build | Context name -> CSS selector. The first entry is the base context and is emitted in full; the rest are override-only blocks. |
 | `colorFormat` | `"oklch"` | build | `"oklch"` or `"hex"`. |
 | `dimensionUnit` | `"preserve"` | build | `"preserve"` keeps authored units; `"rem"` converts `px` to `rem`. |
-| `nameExtension` | `"com.bezel.app"` | build | The `$extensions` key that holds `exportName`. Only change for files exported before the 0.3.0 rename. |
+| `nameExtension` | `"new.bezel.app"` | build | The `$extensions` key that holds `exportName`. Only change for files exported before the 0.3.0 rename. |
 | `includeAll` | `false` | build | Also emit a variable for every token without an `exportName`, named by its kebab-cased path (`--base-color-primary-500`). |
 | `write` | `true` | build | `false` returns the CSS without writing files (programmatic use). |
 | `gitignore` | `true` | build | Maintain a `# bezel:start` ... `# bezel:end` block in `.gitignore` listing the generated outputs. |

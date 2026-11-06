@@ -25,7 +25,7 @@
           "$root": { "$value": { "colorSpace": "oklch", "components": [0.31, 0.082, 298.1] } },
           "$type": "color",
           "$extensions": {
-            "com.bezel.app": {
+            "new.bezel.app": {
               "exportName": ["foreground", "card-foreground", "popover-foreground"]
             }
           }
@@ -37,7 +37,7 @@
         "sans": {
           "$root": { "$value": ["Geist Variable", "sans-serif"] },
           "$type": "fontFamily",
-          "$extensions": { "com.bezel.app": { "exportName": ["font-sans"] } }
+          "$extensions": { "new.bezel.app": { "exportName": ["font-sans"] } }
         }
       },
       "font-size": {
@@ -51,7 +51,7 @@
       "md": {
         "$root": { "$value": { "value": 16, "unit": "px" } },
         "$type": "dimension",
-        "$extensions": { "com.bezel.app": { "exportName": [""] } }
+        "$extensions": { "new.bezel.app": { "exportName": [""] } }
       }
     }
   },
@@ -62,12 +62,12 @@
           "dark": { "$value": "{base.color.aqua.500.$root}" },
           "$root": { "$value": "{base.color.green.500.$root}" },
           "$type": "color",
-          "$extensions": { "com.bezel.app": { "exportName": ["primary"] } }
+          "$extensions": { "new.bezel.app": { "exportName": ["primary"] } }
         },
         "foreground": {
           "$root": { "$value": "{base.color.neutral.foreground.$root}" },
           "$type": "color",
-          "$extensions": { "com.bezel.app": { "exportName": ["primary-foreground"] } }
+          "$extensions": { "new.bezel.app": { "exportName": ["primary-foreground"] } }
         }
       }
     }

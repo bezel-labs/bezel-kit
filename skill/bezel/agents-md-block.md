@@ -1,6 +1,6 @@
 ## Bezel design tokens
 
-- `design-tokens.json` at the repo root is the source for every design token. Edit it to change a color, size, font, or radius, or to add a CSS variable (add an `exportName` under `$extensions["com.bezel.app"]`).
+- `design-tokens.json` at the repo root is the source for every design token. Edit it to change a color, size, font, or radius, or to add a CSS variable (add an `exportName` under `$extensions["new.bezel.app"]`).
 - Files under the Bezel output folder (`variablesOutput`, `contextsOutput`, `fontsOutput` in `bezel.json`; `src/bezel/` by default) are generated. Never edit them; they are overwritten on every build.
 - After changing `design-tokens.json` or `bezel.json`, run `npm run tokens` (or `npx bezel build`) and check the outputs were rewritten.
 - Dark mode and other contexts are keys inside each token (`$root`, `dark`, `light`). Add a value under the context key instead of writing a CSS override.

@@ -137,6 +137,19 @@ emit a variable for every token without an `exportName`, named by kebab-casing i
 - Per-context blocks work as before: they contain only the variables whose value differs from
   `:root`.
 
+## Upgrading to 0.13.0
+
+The default `$extensions` namespace changed from `com.bezel.app` to `new.bezel.app`. Tokens
+still carrying the old key no longer match the default, so `bezel build` falls back to
+path-derived names (`--color-primary-default` instead of the authored `--primary`).
+
+Existing Bezel projects are not rewritten, so re-exporting one can still give you the old key.
+Pin the key your `design-tokens.json` uses in `bezel.json`:
+
+```json
+{ "nameExtension": "com.bezel.app" }
+```
+
 ## Upgrading to 0.3.0
 
 The default `$extensions` namespace changed from `com.tokendesigner.app` to
